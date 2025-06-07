@@ -24,8 +24,8 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["backend/src/*"]
     }
   },
-  "include": ["src", "frontend/src/App.tsx"]
+  "include": ["backend/src", "frontend/src/App.tsx"]
 }
