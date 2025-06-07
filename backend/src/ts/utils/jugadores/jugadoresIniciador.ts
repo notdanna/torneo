@@ -1,13 +1,12 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-// import type { Jugador } from './models/torneo';
-import { firebaseConfig } from '../../firebase.ts';
+import { firebaseConfig } from '../../../firebase.ts';
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function invitadosInit(): Promise<void> {
+async function jugadoresIniciador(): Promise<void> {
     try {
         console.log('Iniciando actualización de jugadores...');
         const jugadoresRef = collection(db, 'jugadores');
@@ -31,4 +30,4 @@ async function invitadosInit(): Promise<void> {
 }
 
 // Ejecutar la actualización
-invitadosInit(); 
+jugadoresIniciador(); 

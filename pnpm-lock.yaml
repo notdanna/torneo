@@ -11,9 +11,6 @@ importers:
 
   .:
     dependencies:
-      '@types/node':
-        specifier: ^22.15.30
-        version: 22.15.30
       default-connector:
         specifier: link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector
         version: link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector
@@ -29,13 +26,13 @@ importers:
       react-dom:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@22.15.30)(typescript@5.8.3)
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.0
         version: 9.28.0
+      '@types/node':
+        specifier: ^22.15.30
+        version: 22.15.30
       '@types/react':
         specifier: ^19.1.2
         version: 19.1.6
@@ -57,6 +54,9 @@ importers:
       globals:
         specifier: ^16.0.0
         version: 16.2.0
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.15.30)(typescript@5.8.3)
       tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0

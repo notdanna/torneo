@@ -43,13 +43,14 @@ export interface Juego {
     id_juego: number;
     nombre_juego: string;
     premio: string;
-    tipo_juego: string;
     num_jugadores: number;
 }
 
 // JUEGOS
 export interface Ruelas {
     id: string;
+    parejas: string[];
+
 }
 
 export interface Futbolito {
@@ -59,8 +60,12 @@ export interface Futbolito {
 
 export interface FutbolitoSoplado {
     id: string;
+    parejas: string[];
+
 }
 
 export interface BeerPong {
-    id: string;
+    id: string;    
+    parejas: string[];
+
 }
