@@ -27,7 +27,7 @@ async function getJugadores(): Promise<Jugador[]> {
     }
 }
 
-async function testJugadores(): Promise<void> {
+async function listJugadores(): Promise<void> {
     try {
         console.log('\n--- Obteniendo todos los jugadores ---');
         const jugadores = await getJugadores();
@@ -48,4 +48,4 @@ async function testJugadores(): Promise<void> {
     }
 }
 
-testJugadores(); 
+listJugadores(); 
