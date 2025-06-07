@@ -5,12 +5,15 @@ export interface Torneo {
     id_juego: number;
 }
 
+
+// Cuando esten activos ya no pueden jugar, la busqueda se hace por activo: false
 export interface Jugador {
     id_jugador: number;
     nombre: string;
     empresa: string;
-    foto: string;
+    // foto: string;
     nivel: number;
+    activo: boolean;
 }
 
 export interface Grupo {
@@ -24,6 +27,18 @@ export interface Grupo {
     id_beer_pong: string;
 }
 
+export interface Partida {
+    id_partida: number;
+    id_juego: number;
+    id_grupo: number;
+    // Conjunto de equipos en parejas o individuales en vs
+    equiposA: string[];
+    equiposB: string[];
+    resultado: string;
+}
+
+
+
 export interface Juego {
     id_juego: number;
     nombre_juego: string;
@@ -33,7 +48,6 @@ export interface Juego {
 }
 
 // JUEGOS
-
 export interface Ruelas {
     id: string;
 }
