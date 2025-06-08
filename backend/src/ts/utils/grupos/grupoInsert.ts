@@ -94,13 +94,6 @@ export const crearGruposParaJuego = async (idJuego: number, idTorneo: number) =>
     }
 };
 
-// Ejemplo de uso:
-// crearGruposParaJuego(1, 7); // Para Futbolito en el torneo 7
-// crearGruposParaJuego(2, 7); // Para Futbolito Soplado en el torneo 7
-// crearGruposParaJuego(3, 7); // Para Ruelas en el torneo 7
-// crearGruposParaJuego(4, 7); // Para Beer Pong en el torneo 7
-
-
 
 
 

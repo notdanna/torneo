@@ -26,9 +26,22 @@ export const agregarJugadorAJuego = async (
             throw new Error(`El juego ${idJuego} no existe en el torneo ${idTorneo}`);
         }
 
-        // 3. Agregar el jugador al array de jugadores del juego
+        // 3. Actualizar el estado activo del jugador en la colección de jugadores
+
+        
+        await updateDoc(jugadorRef, {
+            activo: true
+        });
+
+        // 4. Crear una copia actualizada del jugador con activo = true
+        const jugadorActualizado: Jugador = {
+            ...jugador,
+            activo: true
+        };
+
+        // 5. Agregar el jugador actualizado al array de jugadores del juego
         await updateDoc(juegoRef, {
-            jugadores: arrayUnion(jugador),
+            jugadores: arrayUnion(jugadorActualizado),
             num_jugadores: juegoSnap.data().num_jugadores + 1
         });
 

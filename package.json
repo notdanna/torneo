@@ -10,6 +10,8 @@
     "preview": "vite preview",
     
     "list:jugadores": "ts-node backend/src/ts/test/listJugadores.ts",
+    "list:jugadoresSinJuego": "ts-node backend/src/ts/test/listJugadoresInactivos.ts",
+
 
     "insert:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInsertTest.ts",
     "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoInsertTest.ts",

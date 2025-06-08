@@ -7,11 +7,11 @@ async function test() {
         // donde el primer parámetro es el juego a jugar y el segundo es el torneo
         // IMPORTANTE: El el torneo debe existir el juego con el id correspondiente
         
-        // await crearGruposParaJuego(1, 7); // Futbolito
-        // await crearGruposParaJuego(2, 7); // Futbolito Soplado
+        // await crearGruposParaJuego(1, idTorneo); // Futbolito
+        // await crearGruposParaJuego(2, idTorneo); // Futbolito Soplado
 
         await crearGruposParaJuego(3, idTorneo); // Ruelas
-        // await crearGruposParaJuego(4, 7); // Beer Pong
+        // await crearGruposParaJuego(4, idTorneo); // Beer Pong
     } catch (error) {
         console.error('Error en la prueba:', error);
     }
