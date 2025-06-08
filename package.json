@@ -13,7 +13,8 @@
     "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoCreate.ts",
     "insert:juegos": "ts-node backend/src/ts/utils/juego/initJuegos.ts",
     "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresIniciador.ts",
-    "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoInsertu.ts"
+    "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoInsert.ts",
+    "buscar:jugadores": "ts-node backend/src/ts/utils/jugadores/buscarJugadores.ts"
   },
   "dependencies": {
     "default-connector": "link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector",
