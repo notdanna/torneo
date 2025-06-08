@@ -1,35 +1,14 @@
 import { insertarJuego } from "./juegoInsert.ts";
 import type { Juegos } from "../../models/torneo.ts";
-// ...existing code...
+import { juegosMap } from "./types/juegosMap.ts";
 
-
-// Definición de los juegos iniciales
-const juegos: Juegos[] = [
-    {
-        id_juego: 1,
-        nombre_juego: "Futbolito",
-        premio: "",
-        num_jugadores: 0
-    },
-    {
-        id_juego: 1,
-        nombre_juego: "Futbolito",
-        premio: "",
-        num_jugadores: 0
-    },
-    {
-        id_juego: 3,
-        nombre_juego: "Ruelas",
-        premio: "",
-        num_jugadores: 0
-    },
-    {
-        id_juego: 4,
-        nombre_juego: "Beer Pong",
-        premio: "",
-        num_jugadores: 0
-    }
-];
+const juegos: Juegos[] = [1, 2, 3, 4].map(id => ({
+    id_juego: id,
+    nombre_juego: juegosMap(id),
+    premio: "",
+    num_jugadores: 0,
+    jugadores: []
+}));
 
 export const inicializarJuegos = async () => {
     try {

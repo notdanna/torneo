@@ -3,7 +3,7 @@
 // id_juego: number; -> 1 = Futbolito, 2 = Futbolito Soplado, 3 = Ruelas, 4 = Beer Pong
 
 import { db } from "../../../firebase.ts";
-import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, setDoc, doc, getDoc } from "firebase/firestore";
 import type { Grupo, Juegos } from "../../models/torneo.ts";
 
 // Agregar esta función para obtener el último ID de grupo
@@ -21,72 +21,70 @@ const obtenerUltimoIdGrupo = async (gruposRef: any): Promise<number> => {
     return maxId;
 };
 
+const JUEGO_ID_MAP = new Map<number, string>([
+    [1, 'id_futbolito'],
+    [2, 'id_futbolitos_soplados'],
+    [3, 'id_ruelas'],
+    [4, 'id_beer_pong']
+]);
+
 // Modificar la función crearNuevoGrupo para aceptar el uid del juego
-const crearNuevoGrupo = (idJuego: number, idGrupo: number, juegoUid: string): Grupo => {
-    const baseGrupo = {
+const crearNuevoGrupo = (idJuego: number, idGrupo: number): Grupo => {
+    if (!JUEGO_ID_MAP.has(idJuego)) {
+        throw new Error(`Tipo de juego no válido: ${idJuego}`);
+    }
+
+    return {
         id_grupo: idGrupo,
         id_juego: idJuego,
         participantes: [],
         num_grupo: idGrupo,
+        [JUEGO_ID_MAP.get(idJuego)!]: idGrupo // Usamos directamente el número secuencial
     };
-
-    switch (idJuego) {
-        case 1: // Futbolito
-            return {
-                ...baseGrupo,                
-                id_futbolito: juegoUid
-            };
-        case 2: // Futbolito Soplado
-            return {
-                ...baseGrupo,
-                id_futbolitos_soplados: juegoUid
-            };
-        case 3: // Ruelas
-            return {
-                ...baseGrupo,
-                id_ruelas: juegoUid
-            };
-        case 4: // Beer Pong
-            return {
-                ...baseGrupo,
-                id_beer_pong: juegoUid
-            };
-        default:
-            throw new Error(`Tipo de juego no válido: ${idJuego}`);
-    }
 };
 
-// Modificar la función principal para pasar el uid del juego
-export const crearGruposParaJuego = async (idJuego: number) => {
+// Modificar la función principal para pasar el id del juego y el id del torneo
+export const crearGruposParaJuego = async (idJuego: number, idTorneo: number) => {
     try {
         let gruposCreados = 0;
-        const torneosRef = collection(db, "torneo");
-        const torneosSnapshot = await getDocs(torneosRef);
+        const torneoRef = doc(db, "torneo", idTorneo.toString());
+        const torneoDoc = await getDoc(torneoRef);
 
-        for (const torneoDoc of torneosSnapshot.docs) {
-            const juegosRef = collection(torneoDoc.ref, "juego");
-            const juegosQuery = query(juegosRef, where("id_juego", "==", idJuego));
-            const juegosSnapshot = await getDocs(juegosQuery);
+        if (!torneoDoc.exists()) {
+            throw new Error(`No se encontró el torneo con ID ${idTorneo}`);
+        }
 
-            for (const juegoDoc of juegosSnapshot.docs) {
-                const juego = juegoDoc.data() as Juegos;
-                const gruposRef = collection(juegoDoc.ref, "grupos");
-                
-                // Obtener el último ID y sumar 1
-                const ultimoId = await obtenerUltimoIdGrupo(gruposRef);
-                const nuevoId = ultimoId + 1;
-                
-                // Pasar el uid del documento del juego
-                const nuevoGrupo = crearNuevoGrupo(idJuego, nuevoId, juegoDoc.id);
-                
-                await addDoc(gruposRef, nuevoGrupo);
-                gruposCreados++;
-                console.log(`Grupo ${nuevoId} creado para el juego ${juego.nombre_juego} (${juegoDoc.id}) en torneo ${torneoDoc.id}`);
+        const juegosRef = collection(torneoRef, "juego");
+        const juegosQuery = query(juegosRef, where("id_juego", "==", idJuego));
+        const juegosSnapshot = await getDocs(juegosQuery);
+
+        if (juegosSnapshot.empty) {
+            throw new Error(`No se encontró el juego ${idJuego} en el torneo ${idTorneo}`);
+        }
+
+        for (const juegoDoc of juegosSnapshot.docs) {
+            const juego = juegoDoc.data() as Juegos;
+            
+            // Validar que el juego corresponda al tipo correcto
+            if (juego.id_juego !== idJuego) {
+                throw new Error(`El juego encontrado (${juego.id_juego}) no corresponde al tipo solicitado (${idJuego})`);
             }
+
+            const gruposRef = collection(juegoDoc.ref, "grupos");
+            const ultimoId = await obtenerUltimoIdGrupo(gruposRef);
+            const nuevoId = ultimoId + 1;
+            
+            const nuevoGrupo = crearNuevoGrupo(idJuego, nuevoId);
+            
+            const grupoDocRef = doc(gruposRef, nuevoId.toString());
+            await setDoc(grupoDocRef, nuevoGrupo);
+            
+            gruposCreados++;
+            console.log(`Grupo ${nuevoId} creado para el juego ${juego.nombre_juego} en torneo ${idTorneo}`);
         }
         
         if (gruposCreados === 0) {
-            console.log("No se encontró ningún juego con el ID especificado");
+            console.log("No se crearon grupos");
         } else {
             console.log(`Total de grupos creados: ${gruposCreados}`);
         }
@@ -97,10 +95,10 @@ export const crearGruposParaJuego = async (idJuego: number) => {
 };
 
 // Ejemplo de uso:
-// crearGruposParaJuego(1); // Para Futbolito
-// crearGruposParaJuego(2); // Para Futbolito Soplado
-// crearGruposParaJuego(3); // Para Ruelas
-// crearGruposParaJuego(4); // Para Beer Pong
+// crearGruposParaJuego(1, 7); // Para Futbolito en el torneo 7
+// crearGruposParaJuego(2, 7); // Para Futbolito Soplado en el torneo 7
+// crearGruposParaJuego(3, 7); // Para Ruelas en el torneo 7
+// crearGruposParaJuego(4, 7); // Para Beer Pong en el torneo 7
 
 
 

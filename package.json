@@ -8,12 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    
     "list:jugadores": "ts-node backend/src/ts/test/listJugadores.ts",
     "insert:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInsert.ts",
     "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoCreate.ts",
     "insert:juegos": "ts-node backend/src/ts/utils/juego/initJuegos.ts",
-    "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresIniciador.ts"
+    "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresIniciador.ts",
+    "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoInsertu.ts"
   },
   "dependencies": {
     "default-connector": "link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector",
@@ -38,6 +38,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.2"
   }
 }
