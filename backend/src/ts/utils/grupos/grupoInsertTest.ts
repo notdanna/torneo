@@ -1,6 +1,7 @@
 import { crearGruposParaJuego } from './grupoInsert.ts';
 
 async function test() {
+    const idTorneo = 1; // Unico torneo que existe en la base de datos 
     try {
         // Prueba crear un grupo
         // donde el primer parámetro es el juego a jugar y el segundo es el torneo
@@ -8,7 +9,8 @@ async function test() {
         
         // await crearGruposParaJuego(1, 7); // Futbolito
         // await crearGruposParaJuego(2, 7); // Futbolito Soplado
-        await crearGruposParaJuego(3, 7); // Ruelas
+
+        await crearGruposParaJuego(3, idTorneo); // Ruelas
         // await crearGruposParaJuego(4, 7); // Beer Pong
     } catch (error) {
         console.error('Error en la prueba:', error);
