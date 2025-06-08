@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { buscarJugadoresPorNombreParcial } from '../../../core/api/jugadoresService.ts';
 import ButtonInsertar from '../../../core/components/ButtonInsertar.tsx';
 import ButtonEditarJugador from '../../../core/components/ButtonEditarJugador.tsx';
-import ButtonAgregarJugador from '../../../core/components/ButtonAgregarJugador.tsx';
+import ButtonAgregarJugador from '../../pages/SearchPage/AgregarJugador/AgregarJugador.tsx';
 import type { Jugador } from '../../../../../backend/src/ts/models/torneo.ts';
 
 interface SearchPageProps {
