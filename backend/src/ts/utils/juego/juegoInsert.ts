@@ -1,9 +1,9 @@
 import { db } from "../../../firebase.ts";
 import { collection, addDoc } from "firebase/firestore";
-import type { Juego } from "../../models/torneo.ts";
+import type { Juegos} from "../../models/torneo.ts";
 
 
-export const insertarJuego = async (juego: Juego) => {
+export const insertarJuego = async (juego: Juegos) => {
     try {
         // Crea un nuevo documento con UID automático en la colección "torneo"
         const torneoRef = await addDoc(collection(db, "torneo"), {});

@@ -1,10 +1,10 @@
 import { insertarJuego } from "./juegoInsert.ts";
-import type { Juego } from "../../models/torneo.ts";
+import type { Juegos } from "../../models/torneo.ts";
 // ...existing code...
 
 
 // Definición de los juegos iniciales
-const juegos: Juego[] = [
+const juegos: Juegos[] = [
     {
         id_juego: 1,
         nombre_juego: "Futbolito",
