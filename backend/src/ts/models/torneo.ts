@@ -19,7 +19,7 @@ export interface Jugador {
 export interface Grupo {
     id_grupo: number;
     id_juego: number;
-    id_participante: number;
+    participantes: string[];
     num_grupo: number;
     id_ruelas: string;
     id_futbolito: string;
