@@ -1,4 +1,4 @@
-import { db } from "../../../firebase.ts";
+import { db } from "../../../../../src/firebase.ts";
 import { doc, setDoc } from "firebase/firestore";
 
 const TORNEO_ID = 1;

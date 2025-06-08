@@ -1,4 +1,4 @@
-import { db } from "../../../firebase.ts";
+import { db } from "../../../../../src/firebase.ts";
 import { setDoc, doc } from "firebase/firestore";
 import type { Juegos } from "../../models/torneo.ts";
 

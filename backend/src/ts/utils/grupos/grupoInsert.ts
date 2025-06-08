@@ -2,7 +2,7 @@
 // La coleccion de grupos está en torneo/{id_torneo}/juego/{id_juego}/grupos. Es importante que el juego debe existir antes de insertar grupos
 // id_juego: number; -> 1 = Futbolito, 2 = Futbolito Soplado, 3 = Ruelas, 4 = Beer Pong
 
-import { db } from "../../../firebase.ts";
+import { db } from "../../../../../src/firebase.ts";
 import { collection, getDocs, query, where, setDoc, doc, getDoc } from "firebase/firestore";
 import type { Grupo, Juegos } from "../../models/torneo.ts";
 

@@ -5,7 +5,7 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-export const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyDHbMrHh2j-O86t7B-GYjHObmkXknFp2b8",
     authDomain: "torneo-be5fc.firebaseapp.com",
     projectId: "torneo-be5fc",
@@ -21,4 +21,4 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Export the Firebase app and services
-export { app, db };
+export { app, db, firebaseConfig };

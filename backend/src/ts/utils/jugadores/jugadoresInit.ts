@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { firebaseConfig } from '../../../firebase.ts';
+import { firebaseConfig } from "../../../../../src/firebase.ts";
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
