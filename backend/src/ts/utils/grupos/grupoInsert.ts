@@ -6,53 +6,57 @@ import { db } from "../../../firebase.ts";
 import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
 import type { Grupo, Juegos } from "../../models/torneo.ts";
 
-const crearNuevoGrupo = (idJuego: number): Grupo => {
+// Agregar esta función para obtener el último ID de grupo
+const obtenerUltimoIdGrupo = async (gruposRef: any): Promise<number> => {
+    const gruposSnapshot = await getDocs(gruposRef);
+    if (gruposSnapshot.empty) return 0;
+    
+    let maxId = 0;
+    gruposSnapshot.forEach((doc) => {
+        const grupo = doc.data() as Grupo;
+        if (grupo.id_grupo > maxId) {
+            maxId = grupo.id_grupo;
+        }
+    });
+    return maxId;
+};
+
+// Modificar la función crearNuevoGrupo para aceptar el uid del juego
+const crearNuevoGrupo = (idJuego: number, idGrupo: number, juegoUid: string): Grupo => {
     const baseGrupo = {
-        id_grupo: 1,
+        id_grupo: idGrupo,
         id_juego: idJuego,
-        // Conjunto de equipos en parejas o individuales
         participantes: [],
-        num_grupo: 1,
+        num_grupo: idGrupo,
     };
 
     switch (idJuego) {
         case 1: // Futbolito
             return {
-                ...baseGrupo,
-                id_futbolito: "pending",
-                id_ruelas: "",
-                id_futbolitos_soplados: "",
-                id_beer_pong: ""
+                ...baseGrupo,                
+                id_futbolito: juegoUid
             };
         case 2: // Futbolito Soplado
             return {
                 ...baseGrupo,
-                id_futbolito: "",
-                id_ruelas: "",
-                id_futbolitos_soplados: "pending",
-                id_beer_pong: ""
+                id_futbolitos_soplados: juegoUid
             };
         case 3: // Ruelas
             return {
                 ...baseGrupo,
-                id_futbolito: "",
-                id_ruelas: "pending",
-                id_futbolitos_soplados: "",
-                id_beer_pong: ""
+                id_ruelas: juegoUid
             };
         case 4: // Beer Pong
             return {
                 ...baseGrupo,
-                id_futbolito: "",
-                id_ruelas: "",
-                id_futbolitos_soplados: "",
-                id_beer_pong: "pending"
+                id_beer_pong: juegoUid
             };
         default:
             throw new Error(`Tipo de juego no válido: ${idJuego}`);
     }
 };
 
+// Modificar la función principal para pasar el uid del juego
 export const crearGruposParaJuego = async (idJuego: number) => {
     try {
         let gruposCreados = 0;
@@ -68,11 +72,16 @@ export const crearGruposParaJuego = async (idJuego: number) => {
                 const juego = juegoDoc.data() as Juegos;
                 const gruposRef = collection(juegoDoc.ref, "grupos");
                 
-                const nuevoGrupo = crearNuevoGrupo(idJuego);
+                // Obtener el último ID y sumar 1
+                const ultimoId = await obtenerUltimoIdGrupo(gruposRef);
+                const nuevoId = ultimoId + 1;
+                
+                // Pasar el uid del documento del juego
+                const nuevoGrupo = crearNuevoGrupo(idJuego, nuevoId, juegoDoc.id);
                 
                 await addDoc(gruposRef, nuevoGrupo);
                 gruposCreados++;
-                console.log(`Grupo creado exitosamente para el juego ${juego.nombre_juego} en torneo ${torneoDoc.id}`);
+                console.log(`Grupo ${nuevoId} creado para el juego ${juego.nombre_juego} (${juegoDoc.id}) en torneo ${torneoDoc.id}`);
             }
         }
         
