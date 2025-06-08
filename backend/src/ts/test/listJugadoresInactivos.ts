@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
-import type { Jugador } from '../../models/torneo.ts';
-import { firebaseConfig } from '../../../../../src/firebase.ts';
+import type { Jugador } from '../models/torneo.ts';
+import { firebaseConfig } from '../../../../src/firebase.ts';
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
