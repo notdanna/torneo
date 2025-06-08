@@ -19,12 +19,12 @@ export interface Jugador {
 export interface Grupo {
     id_grupo: number;
     id_juego: number;
-    id_participante: number;
+    participantes: string[];
     num_grupo: number;
-    id_ruelas: string;
-    id_futbolito: string;
-    id_futbolitos_soplados: string;
-    id_beer_pong: string;
+    id_ruelas?: string;
+    id_futbolito?: string;
+    id_futbolitos_soplados?: string;
+    id_beer_pong?: string;
 }
 
 export interface Partida {
@@ -43,6 +43,7 @@ export interface Juegos {
     id_juego: number;
     nombre_juego: string;
     premio: string;
+    jugadores: Jugador[];
     num_jugadores: number;
 }
 

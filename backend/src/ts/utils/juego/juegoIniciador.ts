@@ -12,8 +12,8 @@ const juegos: Juegos[] = [
         num_jugadores: 0
     },
     {
-        id_juego: 2,
-        nombre_juego: "Futbolito Soplado",
+        id_juego: 1,
+        nombre_juego: "Futbolito",
         premio: "",
         num_jugadores: 0
     },

@@ -8,7 +8,11 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:jugadores": "NODE_OPTIONS=--experimental-specifier-resolution=node ts-node --project tsconfig.test.json src/ts/test/test.ts"
+    
+    "list:jugadores": "NODE_OPTIONS=--experimental-specifier-resolution=node ts-node --project tsconfig.test.json backend/src/ts/test/listJugadores.ts",
+    "insert:jugadores": "NODE_OPTIONS=--experimental-specifier-resolution=node ts-node --project tsconfig.test.json backend/src/ts/utils/jugadores/jugadoresInsert.ts",
+    "list:grupos": "ts-node backend/src/ts/utils/grupos/grupoCreate.ts",
+    "list:juegos": "ts-node backend/src/ts/utils/juego/initJuegos.ts"
   },
   "dependencies": {
     "default-connector": "link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector",
