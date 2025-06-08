@@ -11,16 +11,14 @@
     
     "list:jugadores": "ts-node backend/src/ts/test/listJugadores.ts",
 
-
     "insert:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInsertTest.ts",
     "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoInsertTest.ts",
     "insert:juegos": "ts-node backend/src/ts/utils/juego/juegoInsertTest.ts",
-
-    "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoInsert.ts",
-
+    "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoTest.ts",
+    "insert:torneo": "ts-node backend/src/ts/utils/torneo/torneoInsertTest.ts",
 
     "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInit.ts",
-
+    "iniciar:torneo": "ts-node backend/src/ts/utils/torneo/torneoInit.ts",
 
     "buscar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresSearch.ts"
 
