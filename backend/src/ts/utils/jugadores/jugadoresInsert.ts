@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
-import type { Jugador } from '@/ts/models/torneo.ts';
+import { getFirestore, collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import type { Jugador } from '../../models/torneo.ts';
 import { firebaseConfig } from '../../../firebase.ts';
 
 // Inicializar Firebase
@@ -57,8 +57,11 @@ async function jugadoresInsert(jugadores: Omit<Jugador, 'id_jugador'>[]): Promis
                     id_jugador: siguienteId
                 };
                 
-                const docRef = await addDoc(jugadoresRef, jugadorCompleto);
-                console.log(`Jugador insertado con ID: ${docRef.id}`);
+                // Usar el ID incremental como ID del documento
+                const docRef = doc(jugadoresRef, siguienteId.toString());
+                await setDoc(docRef, jugadorCompleto);
+                
+                console.log(`Jugador insertado con ID: ${siguienteId}`);
                 console.log('Datos:', jugadorCompleto);
                 
                 siguienteId++;

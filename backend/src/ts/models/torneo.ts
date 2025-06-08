@@ -39,7 +39,7 @@ export interface Partida {
 
 
 
-export interface Juegos {
+export interface juegos {
     id_juego: number;
     nombre_juego: string;
     premio: string;
