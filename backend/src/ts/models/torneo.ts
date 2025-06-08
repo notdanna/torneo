@@ -43,6 +43,7 @@ export interface Juegos {
     id_juego: number;
     nombre_juego: string;
     premio: string;
+    jugadores: Jugador[];
     num_jugadores: number;
 }
 

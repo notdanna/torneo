@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import type { Jugador } from '@/ts/models/torneo.ts';
 import { firebaseConfig } from '../../../firebase.ts';
 
@@ -7,24 +7,21 @@ import { firebaseConfig } from '../../../firebase.ts';
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Lista de ejemplo de jugadores para insertar
-const jugadoresParaInsertar: Jugador[] = [
+// Lista de ejemplo de jugadores para insertar (sin id_jugador)
+const jugadoresParaInsertar: Omit<Jugador, 'id_jugador'>[] = [
     {
-        id_jugador: 1,
         nombre: "Juan Pérez",
         empresa: "TechCorp",
         nivel: 3,
         activo: true
     },
     {
-        id_jugador: 2,
         nombre: "María García",
         empresa: "DataSoft",
         nivel: 2,
         activo: true
     },
     {
-        id_jugador: 3,
         nombre: "Carlos López",
         empresa: "InnovaSys",
         nivel: 1,
@@ -32,18 +29,41 @@ const jugadoresParaInsertar: Jugador[] = [
     }
 ];
 
-async function jugadoresInsert(jugadores: Jugador[]): Promise<void> {
+async function obtenerSiguienteId(): Promise<number> {
+    const jugadoresRef = collection(db, 'jugadores');
+    const snapshot = await getDocs(jugadoresRef);
+    let maxId = 0;
+
+    snapshot.forEach((doc) => {
+        const jugador = doc.data() as Jugador;
+        if (jugador.id_jugador > maxId) {
+            maxId = jugador.id_jugador;
+        }
+    });
+
+    return maxId + 1;
+}
+
+async function jugadoresInsert(jugadores: Omit<Jugador, 'id_jugador'>[]): Promise<void> {
     try {
         console.log('\n--- Iniciando inserción de jugadores ---');
         const jugadoresRef = collection(db, 'jugadores');
+        let siguienteId = await obtenerSiguienteId();
 
-        for (const jugador of jugadores) {
+        for (const jugadorBase of jugadores) {
             try {
-                const docRef = await addDoc(jugadoresRef, jugador);
+                const jugadorCompleto: Jugador = {
+                    ...jugadorBase,
+                    id_jugador: siguienteId
+                };
+                
+                const docRef = await addDoc(jugadoresRef, jugadorCompleto);
                 console.log(`Jugador insertado con ID: ${docRef.id}`);
-                console.log('Datos:', jugador);
+                console.log('Datos:', jugadorCompleto);
+                
+                siguienteId++;
             } catch (error) {
-                console.error(`Error al insertar jugador ${jugador.nombre}:`, error);
+                console.error(`Error al insertar jugador ${jugadorBase.nombre}:`, error);
             }
         }
 
@@ -55,4 +75,4 @@ async function jugadoresInsert(jugadores: Jugador[]): Promise<void> {
 }
 
 // Ejecutar la inserción
-jugadoresInsert(jugadoresParaInsertar); 
+jugadoresInsert(jugadoresParaInsertar);
