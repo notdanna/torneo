@@ -14,6 +14,7 @@ function normalizarTexto(texto: string): string {
     .replace(/[\u0300-\u036f]/g, '') 
     .trim();
 }
+
 export async function buscarJugadoresPorNombreParcial(nombre: string): Promise<Jugador[]> {
   try {
     const jugadoresRef = collection(db, 'jugadores');

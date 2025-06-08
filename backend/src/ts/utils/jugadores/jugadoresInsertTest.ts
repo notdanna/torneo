@@ -4,20 +4,20 @@ import { jugadoresInsert } from './jugadoresInsert.ts';
 // Lista de ejemplo de jugadores para insertar (sin id_jugador)
 const jugadoresParaInsertar: Omit<Jugador, 'id_jugador'>[] = [
     {
-        nombre: "Juan Pérez",
-        empresa: "TechCorp",
+        nombre: "Miguel Gomez",
+        empresa: "One",
         nivel: 3,
         activo: true
     },
     {
-        nombre: "María García",
-        empresa: "DataSoft",
+        nombre: "Pedro Ramirez",
+        empresa: "Two",
         nivel: 2,
         activo: true
     },
     {
-        nombre: "Carlos López",
-        empresa: "InnovaSys",
+        nombre: "Luisa Martinez",
+        empresa: "Three",
         nivel: 1,
         activo: false
     }

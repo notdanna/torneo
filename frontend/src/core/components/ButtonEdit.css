@@ -1,0 +1,25 @@
+.button-edit {
+    background-color: #201dc7;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .button-edit:hover {
+    background-color:#010578;
+  }
+  
+  .button-edit:active {
+    background-color:#131aea;
+  }
+  
+  .button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }

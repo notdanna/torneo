@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import SearchPage from '../../features/pages/SearchPage';
+import SearchPage from '../../features/pages/SearchPage/SearchPage';
 
 export const AppRoutes = () => {
   // Provide onSearch callback to satisfy required SearchPageProps

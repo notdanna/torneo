@@ -1,8 +1,10 @@
 import { Search, X } from 'lucide-react';
 import './SearchPage.css';
 import { useState, useEffect, useCallback } from 'react';
-import { buscarJugadoresPorNombreParcial } from '../../core/api/jugadoresService';
-import type { Jugador } from '../../../../backend/src/ts/models/torneo.ts';
+import { buscarJugadoresPorNombreParcial } from '../../../core/api/jugadoresService.ts';
+import ButtonInsertar from '../../../core/components/ButtonInsertar.tsx';
+import ButtonEditarJugador from '../../../core/components/ButtonEditarJugador.tsx';
+import type { Jugador } from '../../../../../backend/src/ts/models/torneo.ts';
 
 interface SearchPageProps {
   onSearch?: (query: string) => void;
@@ -71,6 +73,20 @@ const SearchPage: React.FC<SearchPageProps> = ({
     // La búsqueda ya se maneja en tiempo real, solo evitamos el refresh
   };
 
+  const handleInsertar = (jugador: Jugador) => {
+    // Aquí puedes agregar la lógica para insertar el jugador
+    console.log('Insertando jugador:', jugador);
+    // Por ejemplo, podrías llamar a una función para agregar al torneo
+    // insertarJugadorEnTorneo(jugador);
+  };
+
+  const handleEditar = (jugador: Jugador) => {
+    // Aquí puedes agregar la lógica para editar el jugador
+    console.log('Editando jugador:', jugador);
+    // Por ejemplo, podrías abrir un modal de edición
+    // abrirModalEdicion(jugador);
+  };
+
   return (
     <div className="search-page">
       <div className="search-container">
@@ -126,11 +142,23 @@ const SearchPage: React.FC<SearchPageProps> = ({
                   <div className="jugadores-list">
                     {jugadores.map((jugador, index) => (
                       <div key={`${jugador.id_jugador}-${index}`} className="jugador-card">
-                        <h3 className="jugador-nombre">
-                          {highlightMatch(jugador.nombre, query)}
-                        </h3>
-                        <div className="jugador-details">
-                          <p><strong>Empresa:</strong> {jugador.empresa}</p>
+                        <div className="jugador-info">
+                          <h3 className="jugador-nombre">
+                            {highlightMatch(jugador.nombre, query)}
+                          </h3>
+                          <div className="jugador-details">
+                            <p><strong>Empresa:</strong> {jugador.empresa}</p>
+                          </div>
+                        </div>
+                        <div className="jugador-actions">
+                          <ButtonInsertar 
+                            onInsertar={() => handleInsertar(jugador)}
+                            disabled={loading}
+                          />
+                          <ButtonEditarJugador 
+                            onEditar={() => handleEditar(jugador)}
+                            disabled={loading}
+                          />
                         </div>
                       </div>
                     ))}
