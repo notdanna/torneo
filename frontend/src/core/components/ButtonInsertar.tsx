@@ -12,7 +12,7 @@ const ButtonInsertar: React.FC<ButtonInsertarProps> = ({  disabled = false }) =>
      className="button-confirm"
      disabled={disabled}
    >
-     Agregar
+     Agregar a juego
    </button>
  );
 };

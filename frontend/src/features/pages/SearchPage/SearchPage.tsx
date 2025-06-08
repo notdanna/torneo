@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { buscarJugadoresPorNombreParcial } from '../../../core/api/jugadoresService.ts';
 import ButtonInsertar from '../../../core/components/ButtonInsertar.tsx';
 import ButtonEditarJugador from '../../../core/components/ButtonEditarJugador.tsx';
+import ButtonAgregarJugador from '../../../core/components/ButtonAgregarJugador.tsx';
 import type { Jugador } from '../../../../../backend/src/ts/models/torneo.ts';
 
 interface SearchPageProps {
@@ -87,6 +88,13 @@ const SearchPage: React.FC<SearchPageProps> = ({
     // abrirModalEdicion(jugador);
   };
 
+  const handleAgregarJugador = () => {
+    // Aquí puedes agregar la lógica para agregar un nuevo jugador
+    console.log('Agregando nuevo jugador con nombre:', query);
+    // Por ejemplo, podrías abrir un modal para crear jugador
+    // abrirModalCrearJugador(query);
+  };
+
   return (
     <div className="search-page">
       <div className="search-container">
@@ -132,6 +140,15 @@ const SearchPage: React.FC<SearchPageProps> = ({
             ) : jugadores.length === 0 && !loading ? (
               <div className="no-results">
                 <p>❌ No se encontraron jugadores que contengan "{query}"</p>
+                <div className="add-player-suggestion">
+                  <ButtonAgregarJugador 
+                   onAgregar={(jugador) => {
+                    console.log('Nuevo jugador creado:', jugador);
+                    // Aquí puedes agregar lógica adicional como actualizar el estado
+                  }}
+                  disabled={loading}
+                  />
+                </div>
               </div>
             ) : (
               jugadores.length > 0 && (
