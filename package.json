@@ -12,16 +12,17 @@
     "list:jugadores": "ts-node backend/src/ts/test/listJugadores.ts",
 
 
-    "insert:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInsert.ts",
-    "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoCreate.ts",
-    "insert:juegos": "ts-node backend/src/ts/utils/juego/initJuegos.ts",
+    "insert:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInsertTest.ts",
+    "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoInsertTest.ts",
+    "insert:juegos": "ts-node backend/src/ts/utils/juego/juegoInsertTest.ts",
+
     "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoInsert.ts",
 
 
-    "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresIniciador.ts",
+    "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInit.ts",
 
 
-    "buscar:jugadores": "ts-node backend/src/ts/utils/jugadores/buscarJugadores.ts"
+    "buscar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresSearch.ts"
 
     
   },

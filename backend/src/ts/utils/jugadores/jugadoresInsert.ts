@@ -7,28 +7,6 @@ import { firebaseConfig } from '../../../firebase.ts';
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Lista de ejemplo de jugadores para insertar (sin id_jugador)
-const jugadoresParaInsertar: Omit<Jugador, 'id_jugador'>[] = [
-    {
-        nombre: "Juan Pérez",
-        empresa: "TechCorp",
-        nivel: 3,
-        activo: true
-    },
-    {
-        nombre: "María García",
-        empresa: "DataSoft",
-        nivel: 2,
-        activo: true
-    },
-    {
-        nombre: "Carlos López",
-        empresa: "InnovaSys",
-        nivel: 1,
-        activo: false
-    }
-];
-
 async function obtenerSiguienteId(): Promise<number> {
     const jugadoresRef = collection(db, 'jugadores');
     const snapshot = await getDocs(jugadoresRef);
@@ -44,7 +22,7 @@ async function obtenerSiguienteId(): Promise<number> {
     return maxId + 1;
 }
 
-async function jugadoresInsert(jugadores: Omit<Jugador, 'id_jugador'>[]): Promise<void> {
+export async function jugadoresInsert(jugadores: Omit<Jugador, 'id_jugador'>[]): Promise<void> {
     try {
         console.log('\n--- Iniciando inserción de jugadores ---');
         const jugadoresRef = collection(db, 'jugadores');
@@ -57,7 +35,6 @@ async function jugadoresInsert(jugadores: Omit<Jugador, 'id_jugador'>[]): Promis
                     id_jugador: siguienteId
                 };
                 
-                // Usar el ID incremental como ID del documento
                 const docRef = doc(jugadoresRef, siguienteId.toString());
                 await setDoc(docRef, jugadorCompleto);
                 
@@ -76,6 +53,3 @@ async function jugadoresInsert(jugadores: Omit<Jugador, 'id_jugador'>[]): Promis
         throw error;
     }
 }
-
-// Ejecutar la inserción
-jugadoresInsert(jugadoresParaInsertar);

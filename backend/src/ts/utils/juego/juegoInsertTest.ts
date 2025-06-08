@@ -1,4 +1,4 @@
-import { inicializarJuegos } from "./juegoIniciador.ts";
+import { inicializarJuegos } from "./juegoInit.ts";
 
 
 const init = async () => {
