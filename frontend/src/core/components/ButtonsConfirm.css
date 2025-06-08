@@ -1,0 +1,25 @@
+.button-confirm {
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .button-confirm:hover {
+    background-color: #16a34a;
+  }
+  
+  .button-confirm:active {
+    background-color: #15803d;
+  }
+  
+  .button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
