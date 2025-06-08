@@ -1,6 +1,6 @@
 import { insertarJuego } from "./juegoInsert.ts";
 import type { Juegos } from "../../models/torneo.ts";
-import { juegosMap } from "./types/juegosMap.ts";
+import { juegosMap } from "../../types/juegosMap.ts";
 
 const juegos: Juegos[] = [1, 2, 3, 4].map(id => ({
     id_juego: id,
