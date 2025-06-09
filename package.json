@@ -21,13 +21,16 @@
   },
   "dependencies": {
     "@types/express": "^5.0.3",
+    "@types/sweetalert": "^2.0.4",
     "default-connector": "link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector",
     "express": "^5.1.0",
     "firebase": "^11.9.0",
     "firebase-tools": "^14.6.0",
     "lucide-react": "^0.513.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "sweetalert": "^2.1.2",
+    "sweetalert2": "^11.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

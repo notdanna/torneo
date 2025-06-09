@@ -1,12 +1,12 @@
 import * as React from 'react';
 import './ButtonsConfirm.css';
 
-interface ButtonInsertarProps {
- onInsertar: () => void;
+interface ButtonAgregarJuegoProps {
+ onAgregarJuego: () => void;
  disabled?: boolean;
 }
 
-const ButtonInsertar: React.FC<ButtonInsertarProps> = ({  disabled = false }) => {
+const ButtonAgregarJuego: React.FC<ButtonAgregarJuegoProps> = ({ onAgregarJuego, disabled = false }) => {
  return (
    <button
      className="button-confirm"
@@ -17,4 +17,4 @@ const ButtonInsertar: React.FC<ButtonInsertarProps> = ({  disabled = false }) =>
  );
 };
 
-export default ButtonInsertar;
+export default ButtonAgregarJuego;

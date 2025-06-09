@@ -13,7 +13,7 @@ const ButtonEditarJugador: React.FC<ButtonEditarJugadorProps> = ({ onEditar, dis
       disabled={disabled}
       onClick={onEditar}
     >
-      Editar
+      Editar en juego 
     </button>
   );
 };
