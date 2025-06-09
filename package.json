@@ -8,28 +8,21 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    
     "list:jugadores": "ts-node backend/src/ts/test/listJugadores.ts",
     "list:jugadoresSinJuego": "ts-node backend/src/ts/test/listJugadoresInactivos.ts",
-
-
     "insert:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInsertTest.ts",
     "insert:grupos": "ts-node backend/src/ts/utils/grupos/grupoInsertTest.ts",
     "insert:juegos": "ts-node backend/src/ts/utils/juego/juegoInsertTest.ts",
     "insert:jugador_to_juego": "ts-node backend/src/ts/utils/juego/jugadorToJuegoTest.ts",
-
-
     "inciarANDinsert:torneo": "ts-node backend/src/ts/utils/torneo/torneoInsert.ts",
-
     "iniciar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresInit.ts",
     "iniciar:torneo_NOFUNCIONA": "ts-node backend/src/ts/utils/torneo/torneoInit.ts",
-
     "buscar:jugadores": "ts-node backend/src/ts/utils/jugadores/jugadoresSearch.ts"
-
-    
   },
   "dependencies": {
+    "@types/express": "^5.0.3",
     "default-connector": "link:../../AppData/Local/pnpm/global/5/node_modules/dataconnect-generated/js/default-connector",
+    "express": "^5.1.0",
     "firebase": "^11.9.0",
     "firebase-tools": "^14.6.0",
     "lucide-react": "^0.513.0",

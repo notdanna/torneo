@@ -7,7 +7,7 @@ import { collection, getDocs, query, where, setDoc, doc, getDoc } from "firebase
 import type { Grupo, Juegos } from "../../models/torneo.ts";
 
 // Agregar esta función para obtener el último ID de grupo
-const obtenerUltimoIdGrupo = async (gruposRef: any): Promise<number> => {
+export const obtenerUltimoIdGrupo = async (gruposRef: any): Promise<number> => {
     const gruposSnapshot = await getDocs(gruposRef);
     if (gruposSnapshot.empty) return 0;
     
@@ -93,7 +93,3 @@ export const crearGruposParaJuego = async (idJuego: number, idTorneo: number) =>
         throw error;
     }
 };
-
-
-
-

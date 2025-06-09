@@ -30,4 +30,4 @@ async function jugadoresIniciador(): Promise<void> {
 }
 
 // Ejecutar la actualización
-jugadoresIniciador(); 
+// jugadoresIniciador(); 
