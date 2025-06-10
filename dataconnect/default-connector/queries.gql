@@ -1,0 +1,104 @@
+# Queries for the torneo application
+
+# Tournament queries
+query GetTournaments {
+  tournaments {
+    id
+    name
+    description
+    startDate
+    endDate
+    createdAt
+  }
+}
+
+query GetTournament($id: UUID!) {
+  tournament(id: $id) {
+    id
+    name
+    description
+    startDate
+    endDate
+    createdAt
+  }
+}
+
+# Team queries
+query GetTeamsByTournament($tournamentId: UUID!) {
+  teams(where: {tournamentId: {eq: $tournamentId}}) {
+    id
+    name
+    tournamentId
+    createdAt
+  }
+}
+
+# Match queries
+query GetMatchesByTournament($tournamentId: UUID!) {
+  matches(where: {tournamentId: {eq: $tournamentId}}) {
+    id
+    homeScore
+    awayScore
+    matchDate
+    homeTeam {
+      id
+      name
+    }
+    awayTeam {
+      id
+      name
+    }
+  }
+}
+
+# Mutations
+mutation CreateTournament($name: String!, $description: String, $startDate: Date!, $endDate: Date!) {
+  tournament_insert(data: {
+    name: $name,
+    description: $description,
+    startDate: $startDate,
+    endDate: $endDate
+  }) {
+    id
+    name
+    description
+    startDate
+    endDate
+  }
+}
+
+mutation CreateTeam($name: String!, $tournamentId: UUID!) {
+  team_insert(data: {
+    name: $name,
+    tournamentId: $tournamentId
+  }) {
+    id
+    name
+    tournamentId
+  }
+}
+
+mutation CreateMatch($tournamentId: UUID!, $homeTeamId: UUID!, $awayTeamId: UUID!, $matchDate: Timestamp!) {
+  match_insert(data: {
+    tournamentId: $tournamentId,
+    homeTeamId: $homeTeamId,
+    awayTeamId: $awayTeamId,
+    matchDate: $matchDate
+  }) {
+    id
+    homeTeamId
+    awayTeamId
+    matchDate
+  }
+}
+
+mutation UpdateMatchScore($id: UUID!, $homeScore: Int!, $awayScore: Int!) {
+  match_update(id: $id, data: {
+    homeScore: $homeScore,
+    awayScore: $awayScore
+  }) {
+    id
+    homeScore
+    awayScore
+  }
+}

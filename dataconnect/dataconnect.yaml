@@ -1,0 +1,9 @@
+specVersion: v1alpha
+serviceId: torneo-dataconnect
+location: us-central1
+schema:
+  source: ./schema
+  datasource:
+    postgresql:
+      database: torneo-db
+connectorDirs: ["./default-connector"]

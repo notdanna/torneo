@@ -1,4 +1,4 @@
-import SearchPage from '../frontend/src/features/pages/SearchPage/SearchPage.tsx';
+import SearchPage from './features/pages/SearchPage/SearchPage.tsx';
 
 function App() {
   const handleSearch = (query: string) => {

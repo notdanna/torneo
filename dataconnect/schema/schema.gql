@@ -1,0 +1,33 @@
+# Schema for torneo application
+# Add your GraphQL schema here
+
+type Tournament {
+  id: UUID! @default(expr: "uuidV4()")
+  name: String!
+  description: String
+  startDate: Date!
+  endDate: Date!
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+type Team {
+  id: UUID! @default(expr: "uuidV4()")
+  name: String!
+  tournamentId: UUID!
+  tournament: Tournament @fk(refs: "tournamentId")
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+type Match {
+  id: UUID! @default(expr: "uuidV4()")
+  tournamentId: UUID!
+  homeTeamId: UUID!
+  awayTeamId: UUID!
+  homeScore: Int @default(value: 0)
+  awayScore: Int @default(value: 0)
+  matchDate: Timestamp!
+  tournament: Tournament @fk(refs: "tournamentId")
+  homeTeam: Team @fk(refs: "homeTeamId")
+  awayTeam: Team @fk(refs: "awayTeamId")
+  createdAt: Timestamp! @default(expr: "request.time")
+}

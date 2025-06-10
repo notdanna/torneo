@@ -1,7 +1,6 @@
-import React from 'react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '../frontend/src/styles/index.css'
+import './styles/index.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
