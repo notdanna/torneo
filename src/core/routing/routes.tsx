@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import SearchPage from '../../features/pages/SearchPage/SearchPage';
+import DataJuegos from '../../features/pages/DataJuegos/VisualizacionJuegos';
 
 export const AppRoutes = () => {
   // Provide onSearch callback to satisfy required SearchPageProps
@@ -9,11 +10,23 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/search" element={<SearchPage onSearch={handleSearch} />} />
-      {/* Otras rutas */}
+      {/* Ruta principal */}
+      <Route 
+        path="/" 
+        element={<SearchPage onSearch={handleSearch} placeholder="Buscar invitado" />} 
+      />
+      
+      {/* Ruta de búsqueda */}
+      <Route 
+        path="/search" 
+        element={<SearchPage onSearch={handleSearch} placeholder="Buscar invitado" />} 
+      />
+      
+      {/* Ruta para visualización de juegos */}
+      <Route path="/data-juegos" element={<DataJuegos />} /> 
+      
+      {/* Ruta alternativa para visualización de juegos */}
+      <Route path="/visualizacion-juegos" element={<DataJuegos />} />
     </Routes>
   );
 };
-
-// O si quieres usarlo en App.tsx directamente:
-// import SearchPage from './features/search/pages/SearchPage';

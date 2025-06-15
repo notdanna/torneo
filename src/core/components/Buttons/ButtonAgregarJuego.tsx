@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { FormularioJugador } from './FormularioJugador';
-import { ConfirmacionJugador } from './ConfirmacionJugador';
-import { useJugadorForm } from '../../../../core/hooks/useJugadorForm';
+import { FormularioJugador } from '../../../../src/features/pages/SearchPage/AgregarJugador/FormularioJugador';
+import { ConfirmacionJugador } from '../../../../src/features/pages/SearchPage/AgregarJugador/ConfirmacionJugador';
+import { useJugadorForm } from '../../../../src/core/hooks/useJugadorForm';
 import './AgregarJugador.css';
-import './ButtonAgregarJugador.css';
 
 interface JugadorCompleto {
   nombre: string;
@@ -76,7 +75,7 @@ const ButtonAgregarJugador: React.FC<ButtonAgregarJugadorProps> = ({
 
   return (
     <>
-      {/* BOTÓN FLOTANTE EN LA ESQUINA INFERIOR DERECHA */}
+      {/* Botón flotante en la esquina inferior derecha */}
       <button
         className="floating-add-button"
         onClick={abrirModal}
@@ -98,7 +97,6 @@ const ButtonAgregarJugador: React.FC<ButtonAgregarJugadorProps> = ({
         </svg>
       </button>
 
-      {/* MODAL DEL FORMULARIO */}
       {mostrarModal && (
         <div 
           className="modal-overlay-jugador"
@@ -133,4 +131,4 @@ const ButtonAgregarJugador: React.FC<ButtonAgregarJugadorProps> = ({
   );
 };
 
-export default ButtonAgregarJugador;  
+export default ButtonAgregarJugador;

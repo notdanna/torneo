@@ -14,6 +14,10 @@
   --orange-500: #f97316;
   --green-500: #10b981;
   --red-500: #ef4444;
+  --blue-500: #007bff;
+  --blue-600: #1565c0;
+  --blue-100: #e3f2fd;
+  --blue-50: #f8fbff;
 }
 
 .search-page {
@@ -187,6 +191,7 @@
   flex-direction: column;
   gap: 1rem;
 }
+
 .jugador-actions {
   display: flex;
   flex-direction: column;
@@ -194,48 +199,103 @@
   flex-shrink: 0;
   align-self: center;
 }
+
 .jugador-card {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   padding: 16px;
   margin-bottom: 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background-color: #f9fafb;
+  border: 2px solid var(--blue-100);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--white-fit) 0%, var(--blue-50) 100%);
   min-height: 80px;
+  transition: all 0.3s ease;
 }
+
 .jugador-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: var(--orange-500);
+  border-color: var(--blue-500);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+  transform: translateY(-2px);
 }
-
-.jugador-nombre {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  line-height: 1.2;
-}
-
 
 .jugador-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   margin-right: 16px;
 }
 
-.jugador-details {
-  margin: 0;
+/* CONTENEDOR DE NOMBRES DE PAREJA */
+.pareja-nombres {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: var(--blue-50);
+  border-radius: 8px;
+  border-left: 4px solid var(--blue-500);
 }
 
-.jugador-details p {
+.jugador-nombre-principal {
+  margin: 0 0 6px 0;
+  color: var(--blue-600);
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.2;
+}
+
+.jugador-nombre-acompanante {
   margin: 0;
+  color: var(--blue-600);
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.9;
+  line-height: 1.2;
+}
+
+/* DETALLES ORGANIZADOS */
+.jugador-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empresas-info {
+  padding: 8px 12px;
+  background-color: var(--blue-100);
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.empresas-info p {
+  margin: 4px 0;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--blue-600);
   line-height: 1.4;
+}
+
+.nivel-info {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.nivel-info p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-600);
+  background-color: var(--gray-100);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--gray-200);
+  white-space: nowrap;
 }
 
 .jugador-card .button-insertar {
@@ -246,7 +306,9 @@
 
 .jugador-details strong {
   color: var(--gray-700);
+  font-weight: 600;
 }
+
 .add-player-suggestion {
   margin-top: 16px;
   display: flex;
@@ -255,6 +317,14 @@
   background-color: #f8fafc;
   border: 1px dashed #cbd5e1;
   border-radius: 8px;
+}
+
+.suggestion-text {
+  color: var(--gray-600);
+  font-style: italic;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .status {
@@ -303,12 +373,49 @@
 
 /* Resaltado de texto coincidente */
 .highlight {
-  background-color: yellow;
-  color: var(--gray-800);
-  padding: 0.1rem 0.2rem;
-  border-radius: 0.25rem;
+  background-color: #fff3cd;
+  padding: 2px 4px;
+  border-radius: 3px;
   font-weight: 600;
+  color: #856404;
 }
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .pareja-nombres {
+    padding: 6px 8px;
+  }
+  
+  .jugador-nombre-principal {
+    font-size: 15px;
+  }
+  
+  .jugador-nombre-acompanante {
+    font-size: 14px;
+  }
+  
+  .nivel-info {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+  
+  .empresas-info p {
+    font-size: 13px;
+  }
+  
+  .jugador-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .jugador-actions {
+    flex-direction: row;
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 640px) {
   .search-page {
     padding: 1rem;
@@ -337,8 +444,18 @@
     right: 0.875rem;
   }
   
+  .jugador-card {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .pareja-nombres {
+    margin-bottom: 8px;
+    padding: 6px;
+  }
+  
   .jugador-details {
-    font-size: 0.85rem;
+    gap: 6px;
   }
 }
 
@@ -353,5 +470,15 @@
   
   .results-container {
     padding: 1rem;
+  }
+  
+  .jugador-nombre-principal,
+  .jugador-nombre-acompanante {
+    font-size: 14px;
+  }
+  
+  .empresas-info,
+  .nivel-info {
+    font-size: 12px;
   }
 }

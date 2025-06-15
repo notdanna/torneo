@@ -1,17 +1,7 @@
-import SearchPage from './features/pages/SearchPage/SearchPage.tsx';
+import { AppRoutes } from './core/routing/routes';
 
 function App() {
-  const handleSearch = (query: string) => {
-    console.log('Búsqueda realizada:', query);
-    // Aquí puedes agregar tu lógica de búsqueda
-  };
-
-  return (
-    <SearchPage 
-      onSearch={handleSearch}
-      placeholder="Buscar invitado"
-    />
-  );
+  return <AppRoutes />;
 }
 
 export default App;

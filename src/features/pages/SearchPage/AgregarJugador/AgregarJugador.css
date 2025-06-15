@@ -1,325 +1,181 @@
-/* AgregarJugadorModal.css */
+/* AgregarJugadorModal.css - Solo estilos del modal y formulario - Paleta Azul y Blanco */
 
-/* Overlay del modal */
 .modal-overlay-jugador {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
-  }
-  
-  /* Modal container */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-container-jugador {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 2px solid #007bff;
+}
+
+.modal-header-jugador {
+  margin-bottom: 20px;
+  text-align: center;
+  background-color: #007bff;
+  margin: -24px -24px 20px -24px;
+  padding: 20px 24px;
+  border-radius: 6px 6px 0 0;
+}
+
+.modal-title-jugador {
+  margin: 0;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.modal-subtitle-jugador {
+  margin: 8px 0 0 0;
+  color: #e3f2fd;
+  font-size: 14px;
+}
+
+.form-group-jugador {
+  margin-bottom: 16px;
+}
+
+.form-label-jugador {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #1565c0;
+  font-size: 14px;
+}
+
+.form-input-jugador {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #bbdefb;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  background-color: #f8fbff;
+  color: #000000;
+}
+
+.form-input-jugador:focus {
+  border-color: #007bff;
+  outline: none;
+  background-color: white;
+  color: #000000;
+}
+
+.form-input-jugador.error {
+  border-color: #ff1744;
+  background-color: #ffebee;
+}
+
+.error-message-jugador {
+  margin: 4px 0 0 0;
+  color: #ff1744;
+  font-size: 12px;
+}
+
+.confirmacion-datos {
+  margin-bottom: 20px;
+}
+
+.datos-preview {
+  background-color: #e3f2fd;
+  padding: 16px;
+  border-radius: 4px;
+  border-left: 4px solid #007bff;
+  border: 1px solid #bbdefb;
+}
+
+.dato-item {
+  margin-bottom: 8px;
+  color: #1565c0;
+  font-size: 14px;
+}
+
+.dato-item:last-child {
+  margin-bottom: 0;
+}
+
+.dato-item strong {
+  color: #0d47a1;
+}
+
+.form-buttons-jugador {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-jugador {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 80px;
+  font-weight: 500;
+}
+
+.btn-secondary-jugador {
+  background-color: #dc3545;
+  color: white;
+  border: 1px solid #c82333;
+}
+
+.btn-secondary-jugador:hover {
+  background-color: #c82333;
+}
+
+.btn-success-jugador {
+  background-color: #28a745;
+  color: white;
+  border: 1px solid #1e7e34;
+}
+
+.btn-success-jugador:hover {
+  background-color: #1e7e34;
+}
+
+.loading-spinner-jugador {
+  width: 12px;
+  height: 12px;
+  border: 1px solid transparent;
+  border-top: 1px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive para el modal */
+@media (max-width: 640px) {
   .modal-container-jugador {
-    background-color: white;
-    border-radius: 12px;
-    padding: 32px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    position: relative;
-    animation: slideIn 0.3s ease-out;
-    max-height: 90vh;
-    overflow-y: auto;
+    margin: 16px;
+    padding: 16px;
   }
   
-  /* Header del modal */
   .modal-header-jugador {
-    margin-bottom: 24px;
-    text-align: center;
+    margin: -16px -16px 16px -16px;
+    padding: 16px;
   }
   
-  .modal-title-jugador {
-    margin: 0;
-    color: #1f2937;
-    font-size: 24px;
-    font-weight: 700;
-  }
-  
-  .modal-subtitle-jugador {
-    margin: 8px 0 0 0;
-    color: #6b7280;
-    font-size: 14px;
-  }
-  
-  /* Grupos de campos */
-  .form-group-jugador {
-    margin-bottom: 20px;
-  }
-  
-  .form-group-jugador:last-of-type {
-    margin-bottom: 32px;
-  }
-  
-  /* Labels */
-  .form-label-jugador {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-    font-size: 14px;
-  }
-  
-  /* Inputs */
-  .form-input-jugador {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 16px;
-    color: #374151;
-    background-color: #ffffff;
-    box-sizing: border-box;
-    outline: none;
-    transition: border-color 0.2s ease;
-  }
-  
-  .form-input-jugador:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  
-  .form-input-jugador:disabled {
-    background-color: #f9fafb;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-  
-  .form-input-jugador.error {
-    border-color: #ef4444;
-  }
-  
-  .form-input-jugador::placeholder {
-    color: #9ca3af;
-  }
-  
-  /* Mensajes de error */
-  .error-message-jugador {
-    margin: 4px 0 0 0;
-    color: #ef4444;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  
-  /* Confirmación de datos */
-  .confirmacion-datos {
-    margin-bottom: 32px;
-  }
-  
-  .datos-preview {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #007bff;
-  }
-  
-  .dato-item {
-    margin-bottom: 12px;
-    color: #374151;
-    font-size: 16px;
-  }
-  
-  .dato-item:last-child {
-    margin-bottom: 0;
-  }
-  
-  .dato-item strong {
-    color: #1f2937;
-    margin-right: 8px;
-  }
-  
-  /* Contenedor de botones */
   .form-buttons-jugador {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
+    flex-direction: column;
   }
-  
-  /* Botones */
-  .btn-jugador {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 120px;
-    justify-content: center;
-  }
-  
-  .btn-jugador:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-  
-  .btn-secondary-jugador {
-    background-color: #6b7280;
-    color: white;
-  }
-  
-  .btn-secondary-jugador:hover:not(:disabled) {
-    background-color: #4b5563;
-  }
-  
-  .btn-primary-jugador {
-    background-color: #3b82f6;
-    color: white;
-  }
-  
-  .btn-primary-jugador:hover:not(:disabled) {
-    background-color: #2563eb;
-  }
-  
-  .btn-success-jugador {
-    background-color: #10b981;
-    color: white;
-  }
-  
-  .btn-success-jugador:hover:not(:disabled) {
-    background-color: #059669;
-  }
-  
-  .btn-success-jugador:disabled {
-    background-color: #86efac;
-  }
-  
-  /* Spinner de carga */
-  .loading-spinner-jugador {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  
-  /* Animaciones */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px) scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-  
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-  
-  /* Responsive */
-  @media (max-width: 640px) {
-    .modal-container-jugador {
-      width: 95%;
-      padding: 24px;
-      margin: 20px;
-    }
-    
-    .modal-title-jugador {
-      font-size: 20px;
-    }
-    
-    .form-buttons-jugador {
-      flex-direction: column;
-    }
-    
-    .btn-jugador {
-      width: 100%;
-    }
-  }
-  
-  /* Estados adicionales para mejor UX */
-  .btn-jugador:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-  }
-  
-  .btn-jugador:active {
-    transform: translateY(1px);
-  }
-  
-  /* Accesibilidad */
-  @media (prefers-reduced-motion: reduce) {
-    .modal-overlay-jugador,
-    .modal-container-jugador,
-    .btn-jugador,
-    .form-input-jugador,
-    .loading-spinner-jugador {
-      animation: none;
-      transition: none;
-    }
-  }
-  
-  /* Estados de hover mejorados */
-  .form-input-jugador:hover:not(:disabled) {
-    border-color: #9ca3af;
-  }
-  
-  .btn-jugador:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  .button-confirm {
-    background-color: #22c55e;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-left: 8px;
-    transition: background-color 0.2s ease;
-  }
-  .button-confirm-agregar {
-    background-color: #22c55e;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    font-size: 20px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-left: 8px;
-    transition: background-color 0.2s ease;
-  }
-  .button-confirm:hover {
-    background-color: #16a34a;
-  }
-  .button-confirm-agregar:hover {
-    background-color: #16a34a;
-  }
-  
-  .button-confirm:active {
-    background-color: #15803d;
-  }
-  
-  .button:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-  }
+}

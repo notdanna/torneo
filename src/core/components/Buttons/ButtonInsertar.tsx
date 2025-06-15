@@ -13,7 +13,7 @@ const ButtonInsertar: React.FC<ButtonInsertarProps> = ({ onInsertar, disabled = 
      onClick={onInsertar}
      disabled={disabled}
    >
-     Agregar a juego
+     Ver juego
    </button>
  );
 };

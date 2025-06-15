@@ -5,12 +5,14 @@ export interface Torneo {
     id_juego: number;
 }
 
-
+// Modelo actualizado para soportar parejas
 // Cuando esten activos ya no pueden jugar, la busqueda se hace por activo: false
 export interface Jugador {
     id_jugador: number;
     nombre: string;
+    nombreAcompanante: string;
     empresa: string;
+    empresaAcompanante: string;
     // foto: string;
     nivel: number;
     activo: boolean;
@@ -37,8 +39,6 @@ export interface Partida {
     resultado: string;
 }
 
-
-
 export interface Juegos {
     id_juego: number;
     nombre_juego: string;
@@ -51,7 +51,6 @@ export interface Juegos {
 export interface Ruelas {
     id: string;
     parejas: string[];
-
 }
 
 export interface Futbolito {
@@ -62,11 +61,9 @@ export interface Futbolito {
 export interface FutbolitoSoplado {
     id: string;
     parejas: string[];
-
 }
 
 export interface BeerPong {
     id: string;    
     parejas: string[];
-
 }

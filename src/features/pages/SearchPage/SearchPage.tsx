@@ -1,9 +1,10 @@
 import { Search, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './SearchPage.css';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { buscarJugadoresPorNombreParcial } from '../../../core/api/jugadoresService.ts';
-import ButtonInsertar from '../../../core/components/ButtonInsertar.tsx';
-import ButtonEditarJugador from '../../../core/components/ButtonEditarJugador.tsx';
+import ButtonInsertar from '../../../core/components/Buttons/ButtonInsertar.tsx';
+import ButtonEditarJugador from '../../../core/components/Buttons/ButtonEditarJugador.tsx';
 import ButtonAgregarJugador from './AgregarJugador/AgregarJugador.tsx';
 import type { Jugador } from '../../../core/models/torneo.ts';
 
@@ -16,10 +17,14 @@ const SearchPage: React.FC<SearchPageProps> = ({
   onSearch,
   placeholder = "Buscar jugador por nombre..."
 }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Referencia al componente ButtonAgregarJugador para poder activarlo
+  const agregarJugadorRef = useRef<{ abrirModal: () => void }>(null);
 
   // Función debounced para búsqueda
   const debouncedSearch = useCallback(
@@ -75,24 +80,34 @@ const SearchPage: React.FC<SearchPageProps> = ({
   };
 
   const handleInsertar = (jugador: Jugador) => {
-    // Aquí puedes agregar la lógica para insertar el jugador
-    console.log('Insertando jugador:', jugador);
-    // Por ejemplo, podrías llamar a una función para agregar al torneo
-    // insertarJugadorEnTorneo(jugador);
+    console.log('Redirigiendo a VisualizacionJuegos con jugador:', jugador);
+    navigate('/visualizacion-juegos', { 
+      state: { 
+        jugador: jugador,
+        from: 'search' 
+      } 
+    });
   };
 
-  const handleEditar = (jugador: Jugador) => {
-    // Aquí puedes agregar la lógica para editar el jugador
-    console.log('Editando jugador:', jugador);
-    // Por ejemplo, podrías abrir un modal de edición
-    // abrirModalEdicion(jugador);
+  // ✅ FUNCIÓN PARA EL BOTÓN "EDITAR" QUE ACTÚA COMO "AGREGAR"
+  const handleAgregarJugadorDesdeBoton = () => {
+    console.log('Abriendo modal para agregar nueva pareja desde botón editar');
+    // Simular click en el botón flotante
+    document.querySelector('.floating-add-button')?.dispatchEvent(new Event('click', { bubbles: true }));
   };
 
+  const handleAgregarJugador = (jugador: any) => {
+    console.log('Nuevo jugador creado:', jugador);
+    // Actualizar la búsqueda para incluir el nuevo jugador
+    if (query.trim()) {
+      debouncedSearch(query);
+    }
+  };
 
   return (
     <div className="search-page">
       <div className="search-container">
-        <h1 className="search-title">Búsqueda de Jugadores</h1>
+        <h1 className="search-title">Búsqueda de Parejas</h1>
         
         <form onSubmit={handleSubmit} className="search-form">
           <div className="search-input-wrapper">
@@ -133,41 +148,55 @@ const SearchPage: React.FC<SearchPageProps> = ({
               </div>
             ) : jugadores.length === 0 && !loading ? (
               <div className="no-results">
-                <p>❌ No se encontraron jugadores que contengan "{query}"</p>
-                <div className="add-player-suggestion">
-                  <ButtonAgregarJugador 
-                   onAgregar={(jugador) => {
-                    console.log('Nuevo jugador creado:', jugador);
-                    // Aquí puedes agregar lógica adicional como actualizar el estado
-                  }}
-                  disabled={loading}
-                  />
-                </div>
+                <p>❌ No se encontraron parejas que contengan "{query}"</p>
+                <p className="suggestion-text">
+                  💡 Puedes agregar una nueva pareja usando el botón verde en la esquina inferior derecha
+                </p>
               </div>
             ) : (
               jugadores.length > 0 && (
                 <div className="results-container">
                   <h2 className="results-title">
-                    ✅ Se encontraron {jugadores.length} jugador(es):
+                    ✅ Se encontraron {jugadores.length} pareja(s):
                   </h2>
                   <div className="jugadores-list">
                     {jugadores.map((jugador, index) => (
                       <div key={`${jugador.id_jugador}-${index}`} className="jugador-card">
                         <div className="jugador-info">
-                          <h3 className="jugador-nombre">
-                            {highlightMatch(jugador.nombre, query)}
-                          </h3>
+                          {/* NOMBRE DE LA PAREJA - SIN HIGHLIGHT */}
+                          <div className="pareja-nombres">
+                            <h3 className="jugador-nombre-principal">
+                              👤 {jugador.nombre}
+                            </h3>
+                            <h3 className="jugador-nombre-acompanante">
+                              👥 {jugador.nombreAcompanante || 'Sin acompañante'}
+                            </h3>
+                          </div>
+                          
+                          {/* DETALLES DE LA PAREJA */}
                           <div className="jugador-details">
-                            <p><strong>Empresa:</strong> {jugador.empresa}</p>
+                            <div className="empresas-info">
+                              <p><strong>Empresa Principal:</strong> {jugador.empresa}</p>
+                              {jugador.empresaAcompanante && (
+                                <p><strong>Empresa Acompañante:</strong> {jugador.empresaAcompanante}</p>
+                              )}
+                            </div>
+                            
+                            <div className="nivel-info">
+                              <p><strong>Nivel:</strong> {jugador.nivel} - {getNivelTexto(jugador.nivel)}</p>
+                              <p><strong>Estado:</strong> {jugador.activo ? '🟢 Activo' : '🔴 Inactivo'}</p>
+                            </div>
                           </div>
                         </div>
+                        
                         <div className="jugador-actions">
                           <ButtonInsertar 
                             onInsertar={() => handleInsertar(jugador)}
                             disabled={loading}
                           />
+                          {/* ✅ BOTÓN "EDITAR" QUE AHORA FUNCIONA COMO "AGREGAR JUGADOR" */}
                           <ButtonEditarJugador 
-                            onEditar={() => handleEditar(jugador)}
+                            onEditar={handleAgregarJugadorDesdeBoton}
                             disabled={loading}
                           />
                         </div>
@@ -180,9 +209,26 @@ const SearchPage: React.FC<SearchPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Botón flotante siempre visible */}
+      <ButtonAgregarJugador 
+        onAgregar={handleAgregarJugador}
+        disabled={loading}
+        nombreInicial={query.trim()}
+      />
     </div>
   );
 };
+
+// Función para obtener texto del nivel
+function getNivelTexto(nivel: number): string {
+  if (nivel === 0) return 'Nuevo jugador';
+  if (nivel === 1) return 'Principiante';
+  if (nivel <= 3) return 'Básico';
+  if (nivel <= 6) return 'Intermedio';
+  if (nivel <= 8) return 'Avanzado';
+  return 'Experto';
+}
 
 // Función debounce
 function debounce<T extends (...args: any[]) => any>(
@@ -201,22 +247,6 @@ function debounce<T extends (...args: any[]) => any>(
   };
   
   return debouncedFunction;
-}
-
-// Función para resaltar el texto coincidente
-function highlightMatch(text: string, query: string): React.ReactNode {
-  if (!query.trim()) return text;
-  
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  const parts = text.split(regex);
-  
-  return parts.map((part, index) => 
-    regex.test(part) ? (
-      <mark key={index} className="highlight">{part}</mark>
-    ) : (
-      part
-    )
-  );
 }
 
 export default SearchPage;
