@@ -1,5 +1,3 @@
-// Clases para la base de datos no relacional con Firebase
-
 export interface Torneo {
     id_torneo: number;
     id_juego: number;
@@ -67,3 +65,32 @@ export interface BeerPong {
     id: string;    
     parejas: string[];
 }
+/*=========================Models para jugador a grupo=========================*/
+export interface JugadorJuegoData {
+    id_jugador: number;
+    id_juego: number;
+  }
+  
+  export interface JugadorJuegoRequest {
+    jugador_juego: JugadorJuegoData;
+  }
+  
+  export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+    message?: string;
+  }
+  /*=========================Models para jugador a grupo=========================*/
+  export interface AgregarGrupoRequest {
+    jugadorId: number;
+    grupoId: number;
+    juegoId: number;
+  }
+  
+  export interface AgregarGrupoResponse {
+    // Define aquí la estructura de respuesta según lo que devuelva tu API
+    success?: boolean;
+    message?: string;
+    data?: any;
+  }

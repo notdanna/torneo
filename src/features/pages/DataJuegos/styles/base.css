@@ -1,0 +1,27 @@
+/* Iconos de sección - color compartido */
+.icon-seccion {
+    color: #3b82f6;
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* Icono de éxito */
+  .icon-success {
+    color: #10b981;
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Icono girando para carga */
+  .icono-girando {
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }

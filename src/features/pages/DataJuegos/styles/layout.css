@@ -1,0 +1,30 @@
+/* CONTENEDOR PRINCIPAL */
+.visualizacion-juegos {
+    min-height: 100vh;
+    width: 100vw;
+    background-color: #ffffff;
+    padding: 20px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 500px;
+    background-color: #ffffff;
+  }
+  
+  /* CONTENIDO PRINCIPAL */
+  .contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* SEPARADOR ENTRE SECCIONES */
+  .separador {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #bbdefb, transparent);
+    margin: 16px 0;
+  }

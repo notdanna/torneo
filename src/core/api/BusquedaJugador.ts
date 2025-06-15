@@ -2,11 +2,6 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firabase.ts'; // Ajusta la ruta según tu estructura
 import type { Jugador } from '../models/torneo.ts';
 
-/**
- * Normaliza texto removiendo acentos y convirtiendo a minúsculas
- * @param texto Texto a normalizar
- * @returns Texto sin acentos y en minúsculas
- */
 function normalizarTexto(texto: string): string {
   return texto
     .toLowerCase()

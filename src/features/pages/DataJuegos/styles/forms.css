@@ -1,0 +1,10 @@
+.selector-radio {
+    margin-left: 1rem;
+  }
+  
+  .selector-radio input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #3b82f6;
+    cursor: pointer;
+  }

@@ -380,18 +380,248 @@
   color: #856404;
 }
 
-/* RESPONSIVE DESIGN */
-@media (max-width: 768px) {
+/* RESPONSIVE DESIGN MÁS GRANDE */
+
+/* TABLET (481px - 768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+  .search-page {
+    padding: 2.5rem;
+  }
+  
+  .search-container {
+    max-width: 700px;
+  }
+  
+  .search-title {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .search-input {
+    padding: 1.2rem 1.2rem 1.2rem 3rem;
+    font-size: 1.1rem;
+    border-radius: 2.5rem;
+  }
+  
+  .search-icon {
+    left: 1.2rem;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .clear-button {
+    right: 1.2rem;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .results-container {
+    padding: 2rem;
+  }
+  
+  .results-title {
+    font-size: 1.4rem;
+    margin-bottom: 2rem;
+  }
+  
+  .jugador-card {
+    padding: 20px;
+    margin-bottom: 16px;
+    border-radius: 16px;
+    min-height: 100px;
+  }
+  
   .pareja-nombres {
-    padding: 6px 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 10px;
   }
   
   .jugador-nombre-principal {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  
+  .jugador-nombre-acompanante {
+    font-size: 16px;
+  }
+  
+  .empresas-info {
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+  
+  .empresas-info p {
     font-size: 15px;
+    margin: 6px 0;
+  }
+  
+  .nivel-info p {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  
+  .jugador-actions {
+    gap: 12px;
+  }
+}
+
+/* MÓVIL GRANDE (321px - 480px) */
+@media (max-width: 480px) and (min-width: 321px) {
+  .search-page {
+    padding: 2rem 1.5rem;
+    padding-top: 4rem;
+  }
+  
+  .search-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+  
+  .search-input {
+    padding: 1.1rem 1rem 1.1rem 2.8rem;
+    font-size: 1rem;
+  }
+  
+  .search-icon {
+    left: 1rem;
+    width: 18px;
+    height: 18px;
+  }
+  
+  .clear-button {
+    right: 1rem;
+    width: 26px;
+    height: 26px;
+  }
+  
+  .results-container {
+    padding: 1.8rem;
+  }
+  
+  .results-title {
+    font-size: 1.3rem;
+  }
+  
+  .jugador-card {
+    padding: 18px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    flex-direction: column;
+    gap: 16px;
+    min-height: auto;
+  }
+  
+  .jugador-info {
+    margin-right: 0;
+  }
+  
+  .pareja-nombres {
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  
+  .jugador-nombre-principal {
+    font-size: 17px;
+    margin-bottom: 6px;
+  }
+  
+  .jugador-nombre-acompanante {
+    font-size: 15px;
+  }
+  
+  .empresas-info {
+    padding: 10px 14px;
+  }
+  
+  .empresas-info p {
+    font-size: 14px;
+  }
+  
+  .nivel-info {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .nivel-info p {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+  
+  .jugador-actions {
+    flex-direction: row;
+    align-self: stretch;
+    justify-content: center;
+    gap: 10px;
+  }
+}
+
+/* MÓVIL PEQUEÑO (hasta 320px) */
+@media (max-width: 320px) {
+  .search-page {
+    padding: 1.5rem 1rem;
+    padding-top: 3rem;
+  }
+  
+  .search-title {
+    font-size: 1.6rem;
+    margin-bottom: 1.8rem;
+  }
+  
+  .search-input {
+    padding: 1rem 0.8rem 1rem 2.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .search-icon {
+    left: 0.8rem;
+    width: 16px;
+    height: 16px;
+  }
+  
+  .clear-button {
+    right: 0.8rem;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .results-container {
+    padding: 1.5rem;
+  }
+  
+  .results-title {
+    font-size: 1.2rem;
+  }
+  
+  .jugador-card {
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .pareja-nombres {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .jugador-nombre-principal {
+    font-size: 16px;
+    margin-bottom: 4px;
   }
   
   .jugador-nombre-acompanante {
     font-size: 14px;
+  }
+  
+  .empresas-info {
+    padding: 8px 12px;
+  }
+  
+  .empresas-info p {
+    font-size: 13px;
   }
   
   .nivel-info {
@@ -400,85 +630,14 @@
     align-items: flex-start;
   }
   
-  .empresas-info p {
-    font-size: 13px;
-  }
-  
-  .jugador-card {
-    flex-direction: column;
-    gap: 12px;
+  .nivel-info p {
+    font-size: 12px;
+    padding: 4px 8px;
   }
   
   .jugador-actions {
     flex-direction: row;
-    align-self: stretch;
     justify-content: center;
-  }
-}
-
-@media (max-width: 640px) {
-  .search-page {
-    padding: 1rem;
-    padding-top: 4rem;
-  }
-  
-  .search-container {
-    max-width: none;
-  }
-  
-  .search-title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .search-input {
-    padding: 0.875rem 1rem 0.875rem 2.5rem;
-    font-size: 0.95rem;
-  }
-  
-  .search-icon {
-    left: 0.875rem;
-  }
-  
-  .clear-button {
-    right: 0.875rem;
-  }
-  
-  .jugador-card {
-    padding: 12px;
-    margin-bottom: 8px;
-  }
-  
-  .pareja-nombres {
-    margin-bottom: 8px;
-    padding: 6px;
-  }
-  
-  .jugador-details {
-    gap: 6px;
-  }
-}
-
-@media (max-width: 480px) {
-  .search-page {
-    padding-top: 3rem;
-  }
-  
-  .search-title {
-    font-size: 1.25rem;
-  }
-  
-  .results-container {
-    padding: 1rem;
-  }
-  
-  .jugador-nombre-principal,
-  .jugador-nombre-acompanante {
-    font-size: 14px;
-  }
-  
-  .empresas-info,
-  .nivel-info {
-    font-size: 12px;
+    gap: 8px;
   }
 }

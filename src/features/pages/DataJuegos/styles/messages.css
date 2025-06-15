@@ -1,0 +1,105 @@
+/* ESTADOS DE CARGA Y ERROR PARA JUEGOS */
+.estado-carga {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    color: #6b7280;
+  }
+  
+  .mensaje-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+  }
+  
+  .btn-recargar {
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .btn-recargar:hover {
+    background-color: #b91c1c;
+  }
+  
+  .mensaje-exito {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    color: #16a34a;
+    margin-top: 1rem;
+  }
+  
+  .mensaje-exito-contenido {
+    flex: 1;
+  }
+  
+  .juego-agregado-info,
+  .grupo-agregado-info { /* Aplicar el mismo estilo a la info de grupo agregado */
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #166534;
+    font-weight: 500;
+  }
+  
+  /* SIN JUGADOR */
+  .sin-jugador {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .info-box {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+  }
+  
+  .info-box h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  .info-box p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+  
+  /* SIN JUEGOS DISPONIBLES */
+  .sin-juegos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+    background-color: #f9fafb;
+    border-radius: 8px;
+  }

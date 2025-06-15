@@ -1,0 +1,160 @@
+/* RESPONSIVE */
+@media (max-width: 1024px) and (min-width: 769px) {
+    /* iPad - Centrado y más grande */
+    .visualizacion-juegos {
+      justify-content: center;
+      padding: 30px;
+    }
+  
+    .container {
+      max-width: 800px;
+      padding: 20px;
+    }
+  
+    .titulo {
+      font-size: 28px;
+    }
+  
+    .mensaje-bienvenida h2 {
+      font-size: 20px;
+    }
+  
+    .btn-volver {
+      padding: 12px 20px;
+      font-size: 16px;
+    }
+  
+    .seccion-jugador,
+    .seccion-juegos,
+    .seccion-grupos { /* Incluir grupos aquí también */
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+  
+    .seccion-header h4 {
+      font-size: 18px;
+    }
+  
+    .icon-seccion {
+      width: 20px;
+      height: 20px;
+    }
+  
+    .info-item {
+      padding: 12px 16px;
+      gap: 12px;
+    }
+  
+    .info-item .icon {
+      width: 18px;
+      height: 18px;
+    }
+  
+    .info-item label {
+      font-size: 12px;
+    }
+  
+    .info-item span {
+      font-size: 16px;
+    }
+  
+    .card-header {
+      padding: 18px 24px;
+    }
+  
+    .card-header h3 {
+      font-size: 18px;
+    }
+  
+    .icon-success {
+      width: 24px;
+      height: 24px;
+    }
+  
+    .card-content {
+      padding: 24px;
+    }
+  
+    .card-actions {
+      padding: 18px 24px;
+      gap: 12px;
+    }
+  
+    .btn-primary,
+    .btn-secondary {
+      padding: 14px 20px;
+      font-size: 16px;
+    }
+  
+    .separador {
+      margin: 24px 0;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .visualizacion-juegos {
+      justify-content: flex-start;
+      padding: 16px;
+    }
+  
+    .container {
+      max-width: 450px;
+    }
+  
+    .seccion-jugador,
+    .seccion-juegos,
+    .seccion-grupos { /* Incluir grupos aquí también */
+      padding: 10px;
+    }
+  
+    .card-content {
+      padding: 12px;
+    }
+  
+    .juego-detalles {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  
+    .juego-opcion,
+    .grupo-opcion { /* Aplicar también a grupos */
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  
+    .selector-radio {
+      margin-left: 0;
+      align-self: flex-end;
+    }
+  
+    .card-actions {
+      flex-direction: column;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .visualizacion-juegos {
+      padding: 12px;
+    }
+  
+    .container {
+      max-width: 600px;
+    }
+  
+    .titulo {
+      font-size: 16px;
+    }
+  
+    .seccion-header h4 {
+      font-size: 12px;
+    }
+  
+    .info-item span {
+      font-size: 11px;
+    }
+  
+    .info-item label {
+      font-size: 9px;
+    }
+  }

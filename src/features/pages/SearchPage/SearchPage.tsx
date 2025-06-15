@@ -1,8 +1,8 @@
 import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SearchPage.css';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { buscarJugadoresPorNombreParcial } from '../../../core/api/jugadoresService.ts';
+import { useState, useEffect, useCallback } from 'react';
+import { buscarJugadoresPorNombreParcial } from '../../../core/api/BusquedaJugador.ts';
 import ButtonInsertar from '../../../core/components/Buttons/ButtonInsertar.tsx';
 import ButtonEditarJugador from '../../../core/components/Buttons/ButtonEditarJugador.tsx';
 import ButtonAgregarJugador from './AgregarJugador/AgregarJugador.tsx';
@@ -22,9 +22,6 @@ const SearchPage: React.FC<SearchPageProps> = ({
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Referencia al componente ButtonAgregarJugador para poder activarlo
-  const agregarJugadorRef = useRef<{ abrirModal: () => void }>(null);
 
   // Función debounced para búsqueda
   const debouncedSearch = useCallback(
