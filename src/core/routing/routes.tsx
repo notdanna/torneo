@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import SearchPage from '../../features/pages/SearchPage/SearchPage';
 import DataJuegos from '../../features/pages/DataJuegos/VisualizacionJuegos';
-
+import AdministrarGrupoJuego from '../../features/pages/admin/Admin';
 export const AppRoutes = () => {
   // Provide onSearch callback to satisfy required SearchPageProps
   const handleSearch = (query: string) => {
@@ -27,6 +27,10 @@ export const AppRoutes = () => {
       
       {/* Ruta alternativa para visualización de juegos */}
       <Route path="/visualizacion-juegos" element={<DataJuegos />} />
+      
+      {/* Ruta para administración de grupos */}
+      <Route path="/admin" element={<AdministrarGrupoJuego />} />
+
     </Routes>
   );
 };

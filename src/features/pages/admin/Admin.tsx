@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Filter, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
+import { ArrowLeft, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
 
 // --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
 interface ApiJugador {
@@ -55,7 +55,7 @@ const AdministrarGrupoJuego = () => {
   // Estados para la UI
   const [idJuego, setIdJuego] = useState('1');
   const [idGrupo, setIdGrupo] = useState('1');
-  const [filtroNivel, setFiltroNivel] = useState('todos');
+  const [filtroNivel] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   
   // Estados para filtrar por ronda
