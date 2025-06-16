@@ -1,52 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
+import type { ApiResponse, Partida} from '../../../core/models/admin';
 
-// --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
-interface ApiJugador {
-  id_jugador: number;
-  nombre: string;
-  empresa: string;
-  nombreAcompanante: string;
-  empresaAcompanante: string;
-  nivel: number;
-}
-
-interface ApiPartida {
-  id_partida: number;
-  id_juego: number;
-  id_grupo: number;
-  ronda: number; // La ronda ahora viene en cada partida
-  equiposX: ApiJugador[];
-  equiposY: ApiJugador[];
-  resultado: string;
-}
-
-interface ApiResponse {
-  message: string;
-  details: {
-    juego: string;
-    grupo: string;
-    total_partidas: number;
-    total_rondas: number; // Nuevo campo
-  };
-  rondas: { // Objeto con rondas
-    [key: string]: ApiPartida[];
-  };
-}
-
-// INTERFACES INTERNAS DEL COMPONENTE
-interface Jugador {
-  id: string;
-  nombre: string;
-  nombreAcompanante: string;
-  nivel: number;
-}
-
-interface Partida {
-  id: number;
-  ronda: number; // Se añade la ronda para filtrar
-  jugadores: Jugador[];
-}
 
 const AdministrarGrupoJuego = () => {
   // Estado para las partidas

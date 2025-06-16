@@ -99,7 +99,6 @@ const VisualizacionJuegos = () => {
           { id: 1, nombre: "Grupo A", descripcion: "Principiantes", activo: true },
           { id: 2, nombre: "Grupo B", descripcion: "Intermedio", activo: true },
           { id: 3, nombre: "Grupo C", descripcion: "Avanzado", activo: true },
-          { id: 4, nombre: "Grupo D", descripcion: "Expertos", activo: false }, // Inactivo
         ];
         setGruposDisponibles(grupos);
       } catch (error) {
@@ -118,18 +117,6 @@ const VisualizacionJuegos = () => {
       resetSelectorGrupo();
     };
   }, []);
-
-  // Debug: Monitorear cambios en el estado del grupo
-  useEffect(() => {
-    console.log(`🔍 Estado del selector de grupo cambió:`);
-    console.log(`   - grupoId: ${grupoId}`);
-    console.log(`   - jugadorIdGrupo: ${jugadorIdGrupo}`);
-    console.log(`   - juegoIdGrupo: ${juegoIdGrupo}`);
-    console.log(`   - esValido: ${esValido()}`);
-    console.log(`   - dataGrupo:`, dataGrupo);
-    console.log(`   - loadingGrupo: ${loadingGrupo}`);
-    console.log(`   - errorGrupo:`, errorGrupo);
-  }, [grupoId, jugadorIdGrupo, juegoIdGrupo, dataGrupo, loadingGrupo, errorGrupo]);
 
   const handleVolver = () => {
     limpiarEstadosAgregar();
@@ -212,11 +199,6 @@ const VisualizacionJuegos = () => {
   };
 
   const handleConfirmarAgregarAlGrupo = async () => {
-    console.log(`🔍 Validando datos antes de agregar al grupo:`);
-    console.log(`   - Jugador ID: ${jugador?.id_jugador}`);
-    console.log(`   - Juego seleccionado: ${juegoSeleccionado}`);
-    console.log(`   - Grupo seleccionado local: ${grupoSeleccionadoLocal}`);
-
     if (!jugador?.id_jugador || !juegoSeleccionado || !grupoSeleccionadoLocal) {
       console.error('❌ Faltan datos para agregar al grupo');
       return;

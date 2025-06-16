@@ -94,3 +94,4 @@ export interface JugadorJuegoData {
     message?: string;
     data?: any;
   }
+  
