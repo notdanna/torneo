@@ -1,8 +1,7 @@
-// import { AppRoutes } from './core/routing/routes';
-import AdministrarGrupoJuego from './core/components/admin/Admin';
+import { AppRoutes } from './core/routing/routes';
 
 function App() {
-  return <AdministrarGrupoJuego />;
+  return <AppRoutes />;
 }
 
 export default App;
