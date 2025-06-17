@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft,  Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
+import { ArrowLeft, Filter, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
 
 // --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
 interface ApiJugador {
