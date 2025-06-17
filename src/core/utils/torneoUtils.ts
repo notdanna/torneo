@@ -16,88 +16,77 @@ export const ordenarJugadoresEnNodo = (nodoDestino: NodoTorneo): void => {
 // Colocar jugador en la ronda correspondiente según su nivel
 // RESPETA las conexiones del bracket para mantener el flujo correcto
 export const colocarJugadorEnRondaPorNivel = (estructura: NodoTorneo[][], jugador: Jugador): void => {
-  const rondaDestino = jugador.nivel; // nivel 1 = ronda 2 (índice 1)
+  // El nivel del jugador determina hasta qué ronda debe avanzar
+  // Nivel 1 = avanza a ronda 2 (índice 1), Nivel 2 = avanza a ronda 3 (índice 2), etc.
+  const maxRondaDestino = jugador.nivel;
   
-  if (rondaDestino >= estructura.length) {
+  if (maxRondaDestino >= estructura.length) {
     console.log(`⚠️ Nivel ${jugador.nivel} demasiado alto para ${jugador.nombre} - solo hay ${estructura.length} rondas`);
     return;
   }
 
-  // Buscar en qué nodo de la ronda anterior está el jugador
-  const rondaAnterior = rondaDestino - 1;
-  if (rondaAnterior >= 0 && rondaAnterior < estructura.length) {
-    const nodosRondaAnterior = estructura[rondaAnterior];
+  // Avanzar ronda por ronda siguiendo las conexiones del bracket
+  for (let rondaActual = 0; rondaActual < maxRondaDestino; rondaActual++) {
+    const rondaSiguiente = rondaActual + 1;
     
-    for (let i = 0; i < nodosRondaAnterior.length; i++) {
-      const nodoAnterior = nodosRondaAnterior[i];
+    if (rondaSiguiente >= estructura.length) break;
+    
+    // Buscar al jugador en la ronda actual
+    const nodosRondaActual = estructura[rondaActual];
+    let jugadorEncontrado = false;
+    
+    for (let i = 0; i < nodosRondaActual.length; i++) {
+      const nodoActual = nodosRondaActual[i];
       
-      // Si encontramos al jugador en la ronda anterior
-      if (nodoAnterior.jugador1?.id_jugador === jugador.id_jugador || 
-          nodoAnterior.jugador2?.id_jugador === jugador.id_jugador) {
+      // Si encontramos al jugador en este nodo
+      if (nodoActual.jugador1?.id_jugador === jugador.id_jugador || 
+          nodoActual.jugador2?.id_jugador === jugador.id_jugador) {
+        
+        jugadorEncontrado = true;
         
         // Calcular a qué nodo de la siguiente ronda debe ir según las conexiones del bracket
+        // En un bracket estándar: nodos 0,1 van al nodo 0; nodos 2,3 van al nodo 1; etc.
         const nodoDestinoIndex = Math.floor(i / 2);
-        const rondaDestino = estructura[jugador.nivel];
+        const nodosRondaSiguiente = estructura[rondaSiguiente];
         
-        if (nodoDestinoIndex < rondaDestino.length) {
-          const nodoDestino = rondaDestino[nodoDestinoIndex];
+        if (nodoDestinoIndex < nodosRondaSiguiente.length) {
+          const nodoDestino = nodosRondaSiguiente[nodoDestinoIndex];
           
           // Verificar si el jugador ya está en el nodo destino
           if (nodoDestino.jugador1?.id_jugador === jugador.id_jugador) {
-            nodoDestino.jugador1 = jugador; // Actualizar
-            console.log(`🔄 Jugador ${jugador.nombre} actualizado en ronda ${jugador.nivel + 1}, nodo ${nodoDestinoIndex + 1}, slot 1`);
-            return;
+            // Actualizar datos del jugador existente
+            nodoDestino.jugador1 = jugador;
+            console.log(`🔄 Jugador ${jugador.nombre} actualizado en ronda ${rondaSiguiente + 1}, nodo ${nodoDestinoIndex + 1}, slot 1`);
+            break;
           } else if (nodoDestino.jugador2?.id_jugador === jugador.id_jugador) {
-            nodoDestino.jugador2 = jugador; // Actualizar
-            console.log(`🔄 Jugador ${jugador.nombre} actualizado en ronda ${jugador.nivel + 1}, nodo ${nodoDestinoIndex + 1}, slot 2`);
-            return;
+            // Actualizar datos del jugador existente
+            nodoDestino.jugador2 = jugador;
+            console.log(`🔄 Jugador ${jugador.nombre} actualizado en ronda ${rondaSiguiente + 1}, nodo ${nodoDestinoIndex + 1}, slot 2`);
+            break;
           }
           
-          // Colocar en el primer slot disponible del nodo correcto
+          // Colocar en el primer slot disponible del nodo correcto según las conexiones del bracket
           if (!nodoDestino.jugador1) {
             nodoDestino.jugador1 = jugador;
-            console.log(`✅ Jugador ${jugador.nombre} (nivel ${jugador.nivel}) avanzó de nodo ${i + 1} → ronda ${jugador.nivel + 1}, nodo ${nodoDestinoIndex + 1}, slot 1`);
-            
-            // Ordenar alfabéticamente después de colocar
-            ordenarJugadoresEnNodo(nodoDestino);
-            return;
+            console.log(`✅ Jugador ${jugador.nombre} (nivel ${jugador.nivel}) avanzó de ronda ${rondaActual + 1} nodo ${i + 1} → ronda ${rondaSiguiente + 1}, nodo ${nodoDestinoIndex + 1}, slot 1`);
+            break;
           } else if (!nodoDestino.jugador2) {
             nodoDestino.jugador2 = jugador;
-            console.log(`✅ Jugador ${jugador.nombre} (nivel ${jugador.nivel}) avanzó de nodo ${i + 1} → ronda ${jugador.nivel + 1}, nodo ${nodoDestinoIndex + 1}, slot 2`);
-            
-            // Ordenar alfabéticamente después de colocar
-            ordenarJugadoresEnNodo(nodoDestino);
-            return;
+            console.log(`✅ Jugador ${jugador.nombre} (nivel ${jugador.nivel}) avanzó de ronda ${rondaActual + 1} nodo ${i + 1} → ronda ${rondaSiguiente + 1}, nodo ${nodoDestinoIndex + 1}, slot 2`);
+            break;
           } else {
-            console.log(`⚠️ Nodo destino ${nodoDestinoIndex + 1} en ronda ${jugador.nivel + 1} está lleno para ${jugador.nombre}`);
+            console.log(`⚠️ Nodo destino ${nodoDestinoIndex + 1} en ronda ${rondaSiguiente + 1} está lleno para ${jugador.nombre}`);
+            // El nodo está lleno, este jugador no puede avanzar más por ahora
+            return;
           }
         }
         
-        return; // Salir después de encontrar al jugador en la ronda anterior
+        break; // Salir del bucle de búsqueda en la ronda actual
       }
     }
-  }
-
-  // Si no se encontró en la ronda anterior, usar colocación de respaldo
-  console.log(`⚠️ Jugador ${jugador.nombre} no encontrado en ronda anterior, usando colocación de respaldo`);
-  const ronda = estructura[rondaDestino];
-  
-  for (let i = 0; i < ronda.length; i++) {
-    const nodo = ronda[i];
     
-    if (!nodo.jugador1) {
-      nodo.jugador1 = jugador;
-      console.log(`🔄 Jugador ${jugador.nombre} colocado de respaldo en ronda ${rondaDestino + 1}, nodo ${i + 1}, slot 1`);
-      
-      // Ordenar alfabéticamente después de colocar
-      ordenarJugadoresEnNodo(nodo);
-      return;
-    } else if (!nodo.jugador2) {
-      nodo.jugador2 = jugador;
-      console.log(`🔄 Jugador ${jugador.nombre} colocado de respaldo en ronda ${rondaDestino + 1}, nodo ${i + 1}, slot 2`);
-      
-      // Ordenar alfabéticamente después de colocar
-      ordenarJugadoresEnNodo(nodo);
+    if (!jugadorEncontrado) {
+      console.log(`⚠️ Jugador ${jugador.nombre} no encontrado en ronda ${rondaActual + 1}, no puede avanzar más`);
       return;
     }
   }
@@ -201,7 +190,7 @@ export const crearEstructuraCompleta = (partidas: Partida[], niveles: { [key: nu
   });
 
   // Propagar jugadores a rondas superiores basado en su nivel real
-  // SIN QUITAR de la ronda anterior - solo AGREGAR copias
+  // Respetar las conexiones del bracket: cada jugador avanza siguiendo la estructura
   todosLosJugadores.forEach(jugador => {
     if (jugador.nivel > 0) {
       colocarJugadorEnRondaPorNivel(estructura, jugador);

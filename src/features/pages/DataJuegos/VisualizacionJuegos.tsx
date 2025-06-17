@@ -1,10 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { User, Building2, CheckCircle, Users, GamepadIcon, AlertCircle, Loader2, Trophy, UserPlus } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
-import { useJuegos } from '../../../core/components/selectores/selectorJuegos';
-import { useSelectorGrupo } from '../../../core/components/selectores/selectorGrupo';
-import type { Grupo } from '../../../core/components/selectores/selectorGrupo';
-import './VisualizacionJuegos.css';
+import { useJuegos } from '../../../../src/core/components/Selectores/selectorJuegos';
+import { useSelectorGrupo } from '../../../../src/core/components/Selectores/selectorGrupo';
+import type { Grupo } from '../../../../src/core/components/Selectores/selectorGrupo';
+import './VisualizacionJuegos.css'; 
 
 interface JugadorData {
   id_jugador?: string;

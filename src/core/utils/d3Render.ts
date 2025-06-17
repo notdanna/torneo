@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { NodoTorneo } from '../models/grafos';
 
 export const renderBracket = (
-  svgRef: React.RefObject<SVGSVGElement | null>, 
+  svgRef: React.RefObject<SVGSVGElement>, 
   estructura: NodoTorneo[][]
 ): void => {
   if (!svgRef.current || estructura.length === 0) return;
@@ -208,7 +208,7 @@ const renderRegularNode = (
     .style("fill", nodo.jugador1 ? 
       (jugador1Avanzo ? "#dcfce7" : "#eff6ff") : "#f9fafb")
     .style("stroke", nodo.jugador1 ? 
-      (jugador1Avanzo ? "#16a34a" : "#bfdbfe") : "#e5e7eb")
+      (jugador1Avanzo ? "#16a34a" : "#3b82f6") : "#e5e7eb")
     .style("stroke-width", jugador1Avanzo ? 2 : 1);
 
   svg.append("text")
@@ -218,7 +218,7 @@ const renderRegularNode = (
     .style("font-weight", nodo.jugador1 ? "600" : "400")
     .style("fill", nodo.jugador1 ? 
       (jugador1Avanzo ? "#15803d" : "#1e40af") : "#9ca3af")
-    .text(jugador1Texto);
+    .text(jugador1Texto.length > 25 ? jugador1Texto.substring(0, 22) + "..." : jugador1Texto);
 
   // Indicador de avance para jugador 1
   if (jugador1Avanzo) {
@@ -255,9 +255,9 @@ const renderRegularNode = (
     .attr("height", 20)
     .attr("rx", 3)
     .style("fill", nodo.jugador2 ? 
-      (jugador2Avanzo ? "#dcfce7" : "#f0fdf4") : "#f9fafb")
+      (jugador2Avanzo ? "#dcfce7" : "#eff6ff") : "#f9fafb")
     .style("stroke", nodo.jugador2 ? 
-      (jugador2Avanzo ? "#16a34a" : "#bbf7d0") : "#e5e7eb")
+      (jugador2Avanzo ? "#16a34a" : "#3b82f6") : "#e5e7eb")
     .style("stroke-width", jugador2Avanzo ? 2 : 1);
 
   svg.append("text")
@@ -266,8 +266,8 @@ const renderRegularNode = (
     .style("font-size", "11px")
     .style("font-weight", nodo.jugador2 ? "600" : "400")
     .style("fill", nodo.jugador2 ? 
-      (jugador2Avanzo ? "#15803d" : "#15803d") : "#9ca3af")
-    .text(jugador2Texto);
+      (jugador2Avanzo ? "#15803d" : "#1e40af") : "#9ca3af")
+    .text(jugador2Texto.length > 25 ? jugador2Texto.substring(0, 22) + "..." : jugador2Texto);
 
   // Indicador de avance para jugador 2
   if (jugador2Avanzo) {

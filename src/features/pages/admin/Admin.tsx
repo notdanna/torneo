@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft,  Search, X, LoaderCircle, AlertTriangle,  Swords,  Eye } from 'lucide-react';
+import { ArrowLeft,  Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
 
 // --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
 interface ApiJugador {
@@ -60,7 +60,6 @@ const AdministrarGrupoJuego = () => {
   // Estados para filtrar
   const [availableRondas, setAvailableRondas] = useState<number[]>([]);
   const [rondaSeleccionada, setRondaSeleccionada] = useState<string>('todas');
-  const [mostrarSoloPerdedores, setMostrarSoloPerdedores] = useState(false); // Nuevo estado para el filtro de perdedores
 
   // Estados para crear ronda
   const [numPartidas, setNumPartidas] = useState('');
@@ -75,10 +74,12 @@ const AdministrarGrupoJuego = () => {
   const [updatingLevel, setUpdatingLevel] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [winners, setWinners] = useState<{ [key: string]: string | null }>({});
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 
   // Hook para obtener las partidas desde la API externa
-  const fetchPartidas = useCallback(async (juegoId: string, grupoId: string) => {
+  const fetchPartidas = useCallback(async (juegoId: string, grupoId: string, selectLatestRound = false) => {
     if (!juegoId || !grupoId) {
       setError("Por favor, proporciona un ID de Juego y un ID de Grupo válidos.");
       setPartidas([]);
@@ -90,7 +91,9 @@ const AdministrarGrupoJuego = () => {
     setPartidas([]); 
     setWinners({});
     setAvailableRondas([]);
-    setRondaSeleccionada('todas');
+    if (!selectLatestRound) {
+        setRondaSeleccionada('todas');
+    }
 
     try {
       const url = `https://api-e3mal3grqq-uc.a.run.app/api/partidas?id_juego=${juegoId}&id_grupo=${grupoId}`;
@@ -107,7 +110,8 @@ const AdministrarGrupoJuego = () => {
         const initialWinners: { [key: string]: string | null } = {};
 
         for (const rondaKey in data.rondas) {
-            rondasDisponibles.push(parseInt(rondaKey.split('_')[1]));
+            const rondaNum = parseInt(rondaKey.split('_')[1]);
+            rondasDisponibles.push(rondaNum);
             const partidasDeRonda = data.rondas[rondaKey];
             const partidasTransformadas = partidasDeRonda.map(p => {
                 const jugadores = [
@@ -115,15 +119,12 @@ const AdministrarGrupoJuego = () => {
                     ...p.equiposY.map(j => ({ id: String(j.id_jugador), nombre: j.nombre, nombreAcompanante: j.nombreAcompanante, nivel: j.nivel }))
                 ];
                 
-                // --- LÓGICA PARA DETERMINAR GANADOR INICIAL ---
                 if (jugadores.length === 2) {
                     const compositeKey = `ronda-${p.ronda}-partida-${p.id_partida}`;
                     if (jugadores[0].nivel > jugadores[1].nivel) {
                         initialWinners[compositeKey] = jugadores[0].id;
                     } else if (jugadores[1].nivel > jugadores[0].nivel) {
                         initialWinners[compositeKey] = jugadores[1].id;
-                    } else {
-                        initialWinners[compositeKey] = null; // Empate o sin definir
                     }
                 }
                 
@@ -132,9 +133,16 @@ const AdministrarGrupoJuego = () => {
             todasLasPartidas.push(...partidasTransformadas);
         }
 
+        const sortedRondas = rondasDisponibles.sort((a, b) => a - b);
         setPartidas(todasLasPartidas);
-        setWinners(initialWinners); // Establecer ganadores iniciales
-        setAvailableRondas(rondasDisponibles.sort((a, b) => a - b));
+        setWinners(initialWinners);
+        setAvailableRondas(sortedRondas);
+
+        if (selectLatestRound && sortedRondas.length > 0) {
+            const latestRound = sortedRondas[sortedRondas.length - 1];
+            setRondaSeleccionada(String(latestRound));
+        }
+
         setInfoJuego({
             juego: data.details.juego, 
             grupo: data.details.grupo, 
@@ -196,7 +204,29 @@ const AdministrarGrupoJuego = () => {
     }
   };
 
- 
+  const handleDeleteAllPartidas = async () => {
+    setShowDeleteConfirm(false);
+    if (!idJuego || !idGrupo) return alert("ID de Juego o Grupo no especificado.");
+    setIsDeletingAll(true);
+    try {
+        const url = `https://api-e3mal3grqq-uc.a.run.app/api/partidas`;
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_juego: parseInt(idJuego), id_grupo: parseInt(idGrupo) })
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: `Error en la API: ${response.status}` }));
+            throw new Error(errorData.message || 'Error desconocido al eliminar.');
+        }
+        await fetchPartidas(idJuego, idGrupo);
+    } catch (err) {
+        alert(`No se pudieron eliminar las partidas: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+    } finally {
+        setIsDeletingAll(false);
+    }
+  };
+
   const handleCreateRonda = async () => {
     if (!numPartidas || !nivelPartida || !idJuego || !idGrupo) return alert("Por favor, completa todos los campos para crear la ronda.");
     setIsCreating(true);
@@ -215,7 +245,7 @@ const AdministrarGrupoJuego = () => {
         }
         setNumPartidas('');
         setNivelPartida('');
-        await fetchPartidas(idJuego, idGrupo);
+        await fetchPartidas(idJuego, idGrupo, true); // <--- CAMBIO: Pasa true para seleccionar la última ronda
     } catch (err) {
         alert(`No se pudo crear la ronda: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     } finally {
@@ -261,7 +291,7 @@ const AdministrarGrupoJuego = () => {
       <main style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '12px', flex: 1, minHeight: 0 }}>
         {/* PANEL IZQUIERDO: LISTA DE PARTIDAS */}
         <div style={{ background: 'white', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)', minHeight: 0 }}>
-          <div style={{ background: '#10b981', color: 'white', padding: '10px 14px', borderRadius: '6px', marginBottom: '16px', fontSize: '16px', fontWeight: '600', textAlign: 'center', flexShrink: 0 }}>
+          <div style={{ background: '#10b981', color: 'white', padding: '10px 14px', borderRadius: '6px', marginBottom: '12px', fontSize: '16px', fontWeight: '600', textAlign: 'center', flexShrink: 0 }}>
             {infoJuego ? `Juego ${infoJuego.juego} - Grupo ${infoJuego.grupo} (${infoJuego.rondas} Rondas / ${infoJuego.total} Partidas)` : 'Partidas en curso'}
           </div>
 
@@ -286,19 +316,10 @@ const AdministrarGrupoJuego = () => {
                   const compositeKey = `ronda-${partida.ronda}-partida-${partida.id}`;
                   const winnerId = winners[compositeKey];
                   
-                  // --- FILTRADO DE JUGADORES A MOSTRAR ---
-                  const jugadoresAMostrar = mostrarSoloPerdedores 
-                    ? partida.jugadores.filter(j => winnerId && j.id !== winnerId) 
-                    : partida.jugadores;
-                  
-                  if (mostrarSoloPerdedores && jugadoresAMostrar.length === 0) {
-                      return null; // No mostrar la partida si el filtro de perdedores está activo y no hay un perdedor claro
-                  }
-
                   return (
                     <div key={compositeKey} style={{ border: `1px solid ${winnerId ? '#d1d5db' : '#10b981'}`, borderRadius: '8px', padding: '12px', background: winnerId ? '#f9fafb' : '#f8fffe', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'all 0.3s' }}>
                       <div style={{ color: winnerId ? '#6b7280' : '#dc2626', fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Ronda {partida.ronda} - Partida {partida.id} {winnerId && '(Ganador Seleccionado)'}</div>
-                      {jugadoresAMostrar.map((jugador) => {
+                      {partida.jugadores.map((jugador) => {
                         const isUpdating = updatingLevel === jugador.id;
                         const isLockedForThisPlayer = winnerId != null && winnerId !== jugador.id;
                         return (
@@ -328,62 +349,69 @@ const AdministrarGrupoJuego = () => {
         </div>
 
         {/* PANEL DERECHO: CONTROLES */}
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ background: 'white', borderRadius: '8px', padding: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}>
-              <div style={{ background: '#374151', color: 'white', padding: '10px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: '600', marginBottom: '12px' }}>Buscar Partidas</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input type="number" placeholder="ID del juego" value={idJuego} onChange={(e) => setIdJuego(e.target.value)} style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                <input type="text" placeholder="ID del grupo" value={idGrupo} onChange={(e) => setIdGrupo(e.target.value)} style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                <button onClick={handleBuscarPartidas} disabled={cargando || !idJuego || !idGrupo} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: (cargando || !idJuego || !idGrupo) ? 'not-allowed' : 'pointer', opacity: (cargando || !idJuego || !idGrupo) ? 0.6 : 1, transition: 'background 0.2s' }}>
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+              <div style={{ background: '#374151', color: 'white', padding: '8px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', marginBottom: '10px' }}>Buscar Partidas</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <input type="number" placeholder="ID del juego" value={idJuego} onChange={(e) => setIdJuego(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }} />
+                <input type="text" placeholder="ID del grupo" value={idGrupo} onChange={(e) => setIdGrupo(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }} />
+                <button onClick={handleBuscarPartidas} disabled={cargando || !idJuego || !idGrupo} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: (cargando || !idJuego || !idGrupo) ? 'not-allowed' : 'pointer', opacity: (cargando || !idJuego || !idGrupo) ? 0.6 : 1, transition: 'background 0.2s' }}>
                   {cargando ? 'Buscando...' : 'Buscar'}
                 </button>
               </div>
             </div>
 
-            {/* --- TARJETA DE FILTROS --- */}
-            <div style={{ background: 'white', borderRadius: '8px', padding: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}>
-              <div style={{ background: '#6366f1', color: 'white', padding: '10px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><Eye size={16}/>Filtros de Vista</div>
-              {/* Filtro de Rondas */}
-              <div style={{ marginBottom: '16px'}}>
-                <label style={{display: 'block', color: '#374151', fontSize: '14px', fontWeight: '500', marginBottom: '8px'}}>Ronda</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <button onClick={() => setRondaSeleccionada('todas')} style={{ padding: '10px', border: '1px solid', borderColor: rondaSeleccionada === 'todas' ? '#6366f1' : '#d1d5db', background: rondaSeleccionada === 'todas' ? '#eef2ff' : 'white', color: '#4338ca', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Todas</button>
+            <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                <div style={{ background: '#6366f1', color: 'white', padding: '8px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}><Layers size={16}/>Filtrar por Ronda</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                    <button onClick={() => setRondaSeleccionada('todas')} style={{ padding: '8px', border: '1px solid', borderColor: rondaSeleccionada === 'todas' ? '#6366f1' : '#d1d5db', background: rondaSeleccionada === 'todas' ? '#eef2ff' : 'white', color: '#4338ca', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '12px' }}>Todas</button>
                     {availableRondas.slice(0, 5).map(ronda => (
-                        <button key={ronda} onClick={() => setRondaSeleccionada(String(ronda))} style={{ padding: '10px', border: '1px solid', borderColor: rondaSeleccionada === String(ronda) ? '#6366f1' : '#d1d5db', background: rondaSeleccionada === String(ronda) ? '#eef2ff' : 'white', color: '#4338ca', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Ronda {ronda}</button>
+                        <button key={ronda} onClick={() => setRondaSeleccionada(String(ronda))} style={{ padding: '8px', border: '1px solid', borderColor: rondaSeleccionada === String(ronda) ? '#6366f1' : '#d1d5db', background: rondaSeleccionada === String(ronda) ? '#eef2ff' : 'white', color: '#4338ca', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '12px' }}>R.{ronda}</button>
                     ))}
                 </div>
-              </div>
-              {/* Filtro de Perdedores */}
-              <div>
-                 <label style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#374151', fontSize: '14px', fontWeight: '500'}}>
-                    <span>Mostrar solo perdedores</span>
-                     <button role="switch" aria-checked={mostrarSoloPerdedores} onClick={() => setMostrarSoloPerdedores(!mostrarSoloPerdedores)} style={{ position: 'relative', display: 'inline-flex', height: '24px', width: '44px', flexShrink: 0, cursor: 'pointer', borderRadius: '9999px', border: '2px solid transparent', background: mostrarSoloPerdedores ? '#6366f1' : '#d1d5db', transition: 'background-color 0.2s ease-in-out' }}>
-                        <span style={{ display: 'inline-block', height: '20px', width: '20px', borderRadius: '9999px', background: 'white', transform: mostrarSoloPerdedores ? 'translateX(20px)' : 'translateX(0px)', transition: 'transform 0.2s ease-in-out', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}></span>
-                    </button>
-                 </label>
-              </div>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '8px', padding: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}>
-              <div style={{ background: '#16a34a', color: 'white', padding: '10px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><Swords size={16}/>Crear Nueva Ronda</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <select value={numPartidas} onChange={e => setNumPartidas(e.target.value)} style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}>
-                    <option value="" disabled>Número de Partidas</option>
+            <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+              <div style={{ background: '#16a34a', color: 'white', padding: '8px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}><Swords size={16}/>Crear Nueva Ronda</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <select value={numPartidas} onChange={e => setNumPartidas(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }}>
+                    <option value="" disabled># de Partidas</option>
                     <option value="1">1 Partida</option>
                     <option value="2">2 Partidas</option>
                     <option value="4">4 Partidas</option>
                     <option value="8">8 Partidas</option>
                     <option value="16">16 Partidas</option>
                 </select>
-                <input type="number" placeholder="Nivel de la Partida" value={nivelPartida} onChange={e => setNivelPartida(e.target.value)} style={{ padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }} />
-                <button onClick={handleCreateRonda} disabled={isCreating} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: isCreating ? 'not-allowed' : 'pointer', opacity: isCreating ? 0.5 : 1, transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <input type="number" placeholder="Nivel de la Partida" value={nivelPartida} onChange={e => setNivelPartida(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }} />
+                <button onClick={handleCreateRonda} disabled={isCreating} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: isCreating ? 'not-allowed' : 'pointer', opacity: isCreating ? 0.5 : 1, transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   {isCreating ? <><LoaderCircle size={16} className="animate-spin" /> Creando...</> : 'Crear Ronda'}
                 </button>
               </div>
             </div>
 
+            <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', border: '1px solid #f87171' }}>
+              <div style={{ color: '#dc2626', padding: '8px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', marginBottom: '10px', background: '#fee2e2', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16}/>Zona de Peligro</div>
+              <button onClick={() => setShowDeleteConfirm(true)} disabled={isDeletingAll || partidas.length === 0} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: (isDeletingAll || partidas.length === 0) ? 'not-allowed' : 'pointer', opacity: (isDeletingAll || partidas.length === 0) ? 0.5 : 1, transition: 'background 0.2s', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {isDeletingAll ? <><LoaderCircle size={16} className="animate-spin" /> Eliminando...</> : <><Trash2 size={16}/> Eliminar Todo</>}
+              </button>
+            </div>
         </aside>
       </main>
+
+      {showDeleteConfirm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '24px', borderRadius: '8px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+            <h2 style={{marginTop: 0, color: '#1f2937'}}>¿Estás seguro?</h2>
+            <p style={{color: '#4b5563'}}>Estás a punto de eliminar <strong>todas las partidas y rondas</strong> del Juego {idJuego} / Grupo {idGrupo}. Esta acción no se puede deshacer.</p>
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px'}}>
+              <button onClick={() => setShowDeleteConfirm(false)} disabled={isDeletingAll} style={{padding: '10px 20px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: '500'}}>Cancelar</button>
+              <button onClick={handleDeleteAllPartidas} disabled={isDeletingAll} style={{padding: '10px 20px', borderRadius: '6px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {isDeletingAll ? <><LoaderCircle size={16} className="animate-spin"/> Eliminando...</> : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

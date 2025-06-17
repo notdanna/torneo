@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { insertarJugador, validarJugador, type JugadorData } from '../api/agregarJugadores';
+import { insertarJugador, validarJugador, type JugadorData } from '../api/Services/agregarJugadores';
 
 interface DatosJugador {
   nombre: string;

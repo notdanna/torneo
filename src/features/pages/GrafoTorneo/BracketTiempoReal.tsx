@@ -16,7 +16,7 @@ const BracketTiempoReal: React.FC = () => {
     ultimaActualizacion
   } = useFirebaseData();
   
-  const svgRef = useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null!);
 
   // Dibujar bracket con D3
   useEffect(() => {
