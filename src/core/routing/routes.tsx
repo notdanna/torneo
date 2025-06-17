@@ -36,6 +36,8 @@ export const AppRoutes = () => {
       <Route path="/admin" element={<AdministrarGrupoJuego />} />
       {/*Ruta para visualización de juegos */}
       <Route path="/juegos-completos" element={<LayoutJuegos />} />
+      {/*Ruta para BracketTiempoReal */}
+      <Route path="/bracket" element={<BracketTiempoReal />} />
     </Routes>
   );
 };

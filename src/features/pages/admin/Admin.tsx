@@ -1,6 +1,5 @@
-import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Filter, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers, Eye } from 'lucide-react';
+import { ArrowLeft,  Search, X, LoaderCircle, AlertTriangle,  Swords,  Eye } from 'lucide-react';
 
 // --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
 interface ApiJugador {
@@ -76,8 +75,6 @@ const AdministrarGrupoJuego = () => {
   const [updatingLevel, setUpdatingLevel] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [winners, setWinners] = useState<{ [key: string]: string | null }>({});
-  const [isDeletingAll, setIsDeletingAll] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 
   // Hook para obtener las partidas desde la API externa
@@ -199,29 +196,7 @@ const AdministrarGrupoJuego = () => {
     }
   };
 
-  const handleDeleteAllPartidas = async () => {
-    setShowDeleteConfirm(false);
-    if (!idJuego || !idGrupo) return alert("ID de Juego o Grupo no especificado.");
-    setIsDeletingAll(true);
-    try {
-        const url = `https://api-e3mal3grqq-uc.a.run.app/api/partidas`;
-        const response = await fetch(url, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_juego: parseInt(idJuego), id_grupo: parseInt(idGrupo) })
-        });
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: `Error en la API: ${response.status}` }));
-            throw new Error(errorData.message || 'Error desconocido al eliminar.');
-        }
-        await fetchPartidas(idJuego, idGrupo);
-    } catch (err) {
-        alert(`No se pudieron eliminar las partidas: ${err instanceof Error ? err.message : 'Error desconocido'}`);
-    } finally {
-        setIsDeletingAll(false);
-    }
-  };
-
+ 
   const handleCreateRonda = async () => {
     if (!numPartidas || !nivelPartida || !idJuego || !idGrupo) return alert("Por favor, completa todos los campos para crear la ronda.");
     setIsCreating(true);
