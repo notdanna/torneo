@@ -3,6 +3,7 @@ import SearchPage from '../../features/pages/SearchPage/SearchPage';
 import DataJuegos from '../../features/pages/DataJuegos/VisualizacionJuegos';
 import AdministrarGrupoJuego from '../../features/pages/admin/Admin';
 import LayoutJuegos from '../../features/pages/DataJuegos/LayoutJuegos';
+
 export const AppRoutes = () => {
   // Provide onSearch callback to satisfy required SearchPageProps
   const handleSearch = (query: string) => {
@@ -29,7 +30,6 @@ export const AppRoutes = () => {
       <Route path="/admin" element={<AdministrarGrupoJuego />} />
       {/*Ruta para visualización de juegos */}
       <Route path="/juegos-completos" element={<LayoutJuegos />} />
-
     </Routes>
   );
 };

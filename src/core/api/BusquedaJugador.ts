@@ -1,5 +1,5 @@
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firabase.ts'; // Ajusta la ruta según tu estructura
+import { db } from '../../firebase.ts'; // Ajusta la ruta según tu estructura
 import type { Jugador } from '../models/torneo.ts';
 
 function normalizarTexto(texto: string): string {

@@ -1,131 +1,110 @@
-import * as React from 'react';
 import { useState } from 'react';
-import { FormularioJugador } from './FormularioJugador';
-import { ConfirmacionJugador } from './ConfirmacionJugador';
-import { useJugadorForm } from '../../../../core/hooks/useJugadorForm';
+import { Plus, X } from 'lucide-react';
+import FormularioJugador from '../../../pages/SearchPage/AgregarJugador/FormularioJugador';
 import './AgregarJugador.css';
-import './ButtonAgregarJugador.css';
 
-interface JugadorCompleto {
-  nombre: string;
-  empresa: string;
-  nivel: number;
-}
-
-interface ButtonAgregarJugadorProps {
-  onAgregar?: (jugador: JugadorCompleto) => void;
+// ✅ Interfaz simple y clara
+interface AgregarJugadorProps {
+  onAgregar: (jugador: any) => void;
   disabled?: boolean;
   nombreInicial?: string;
 }
 
-const ButtonAgregarJugador: React.FC<ButtonAgregarJugadorProps> = ({ 
-  onAgregar, 
+const AgregarJugador: React.FC<AgregarJugadorProps> = ({
+  onAgregar,
   disabled = false,
-  nombreInicial = ''
+  nombreInicial = '',
 }) => {
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
-  
-  const {
-    datos,
-    errores,
-    cargando,
-    validarFormulario,
-    resetearFormulario,
-    actualizarDatos,
-    procesarJugador
-  } = useJugadorForm(nombreInicial);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const abrirModal = () => {
+  const handleOpenModal = () => {
     if (!disabled) {
-      setMostrarModal(true);
-      setMostrarConfirmacion(false);
-      resetearFormulario();
+      setIsModalOpen(true);
     }
   };
 
-  const handleCancelar = () => {
-    resetearFormulario();
-    setMostrarModal(false);
-    setMostrarConfirmacion(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
-  const handleContinuar = () => {
-    if (validarFormulario()) {
-      setMostrarConfirmacion(true);
-    }
+  const handleJugadorAgregado = (jugador: any) => {
+    onAgregar(jugador);
+    setIsModalOpen(false);
   };
 
-  const handleConfirmarAgregar = async () => {
-    const resultado = await procesarJugador();
-    if (resultado.exito) {
-      onAgregar?.(resultado.jugador);
-      handleCancelar();
-    }
-  };
-
-  const volverAEditar = () => {
-    setMostrarConfirmacion(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      handleCancelar();
-    }
+  // ✅ Estilos inline solo para el botón flotante
+  const floatingButtonStyle = {
+    position: 'fixed' as const,
+    bottom: '2rem',
+    right: '2rem',
+    width: '56px',
+    height: '56px',
+    backgroundColor: disabled ? '#9ca3af' : '#10b981',
+    color: 'white',
+    border: 'none',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    transition: 'all 0.2s',
+    zIndex: 100,
   };
 
   return (
     <>
-      {/* BOTÓN FLOTANTE EN LA ESQUINA INFERIOR DERECHA */}
+      {/* Botón flotante */}
       <button
-        className="floating-add-button"
-        onClick={abrirModal}
+        onClick={handleOpenModal}
         disabled={disabled}
-        title="Agregar nuevo jugador"
+        style={floatingButtonStyle}
         aria-label="Agregar nuevo jugador"
+        title="Agregar nueva pareja"
+        onMouseEnter={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.backgroundColor = '#059669';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.backgroundColor = '#10b981';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+          }
+        }}
       >
-        <svg
-          className="plus-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
+        <Plus size={24} />
       </button>
 
-      {/* MODAL DEL FORMULARIO */}
-      {mostrarModal && (
-        <div 
-          className="modal-overlay-jugador"
-          onClick={handleCancelar}
-          onKeyDown={handleKeyDown}
-          tabIndex={-1}
-        >
-          <div 
-            className="modal-container-jugador"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {!mostrarConfirmacion ? (
+      {/* ✅ Modal usando las mismas clases CSS que el modal de edición */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">
+                ➕ Agregar Nueva Pareja
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="modal-close-button"
+                aria-label="Cerrar modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body">
               <FormularioJugador
-                datos={datos}
-                errores={errores}
-                onCancelar={handleCancelar}
-                onContinuar={handleContinuar}
-                onActualizarDatos={actualizarDatos}
+                onJugadorAgregado={handleJugadorAgregado}
+                onCancelar={handleCloseModal}
+                nombreInicial={nombreInicial}
+                jugadorParaEditar={null}
+                modoEdicion={false}
               />
-            ) : (
-              <ConfirmacionJugador
-                datos={datos}
-                cargando={cargando}
-                onVolver={volverAEditar}
-                onConfirmar={handleConfirmarAgregar}
-              />
-            )}
+            </div>
           </div>
         </div>
       )}
@@ -133,4 +112,4 @@ const ButtonAgregarJugador: React.FC<ButtonAgregarJugadorProps> = ({
   );
 };
 
-export default ButtonAgregarJugador;  
+export default AgregarJugador;

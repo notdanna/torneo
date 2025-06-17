@@ -1,6 +1,7 @@
-/* AgregarJugadorModal.css - Solo estilos del modal y formulario - Paleta Azul y Blanco */
+/* ModalEdicion.css - Estilos para el modal de edición en SearchPage */
+/* Paleta Azul y Blanco consistente con AgregarJugador */
 
-.modal-overlay-jugador {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,171 +12,258 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 2rem 1rem;
+  overflow-y: auto;
 }
 
-.modal-container-jugador {
+.modal-content {
   background-color: white;
   border-radius: 8px;
-  padding: 24px;
+  padding: 0;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   border: 2px solid #007bff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: fadeInModal 0.3s ease-out;
 }
 
-.modal-header-jugador {
-  margin-bottom: 20px;
-  text-align: center;
+.modal-header {
   background-color: #007bff;
-  margin: -24px -24px 20px -24px;
   padding: 20px 24px;
   border-radius: 6px 6px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.modal-title-jugador {
+.modal-title {
   margin: 0;
   color: white;
   font-size: 20px;
   font-weight: bold;
+  line-height: 1.3;
+  flex: 1;
+  padding-right: 1rem;
 }
 
-.modal-subtitle-jugador {
-  margin: 8px 0 0 0;
-  color: #e3f2fd;
-  font-size: 14px;
-}
-
-.form-group-jugador {
-  margin-bottom: 16px;
-}
-
-.form-label-jugador {
-  display: block;
-  margin-bottom: 4px;
-  font-weight: 600;
-  color: #1565c0;
-  font-size: 14px;
-}
-
-.form-input-jugador {
-  width: 100%;
-  padding: 8px 12px;
-  border: 2px solid #bbdefb;
-  border-radius: 4px;
-  font-size: 14px;
-  box-sizing: border-box;
-  background-color: #f8fbff;
-  color: #000000;
-}
-
-.form-input-jugador:focus {
-  border-color: #007bff;
-  outline: none;
-  background-color: white;
-  color: #000000;
-}
-
-.form-input-jugador.error {
-  border-color: #ff1744;
-  background-color: #ffebee;
-}
-
-.error-message-jugador {
-  margin: 4px 0 0 0;
-  color: #ff1744;
-  font-size: 12px;
-}
-
-.confirmacion-datos {
-  margin-bottom: 20px;
-}
-
-.datos-preview {
-  background-color: #e3f2fd;
-  padding: 16px;
-  border-radius: 4px;
-  border-left: 4px solid #007bff;
-  border: 1px solid #bbdefb;
-}
-
-.dato-item {
-  margin-bottom: 8px;
-  color: #1565c0;
-  font-size: 14px;
-}
-
-.dato-item:last-child {
-  margin-bottom: 0;
-}
-
-.dato-item strong {
-  color: #0d47a1;
-}
-
-.form-buttons-jugador {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.btn-jugador {
-  padding: 10px 20px;
+.modal-close-button {
+  background: none;
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
+  color: white;
   cursor: pointer;
-  min-width: 80px;
-  font-weight: 500;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
 }
 
-.btn-secondary-jugador {
-  background-color: #dc3545;
-  color: white;
-  border: 1px solid #c82333;
+.modal-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
-.btn-secondary-jugador:hover {
-  background-color: #c82333;
+.modal-close-button:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
 }
 
-.btn-success-jugador {
-  background-color: #28a745;
-  color: white;
-  border: 1px solid #1e7e34;
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 70vh;
+  background-color: #f8fbff;
 }
 
-.btn-success-jugador:hover {
-  background-color: #1e7e34;
+/* Animaciones */
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.loading-spinner-jugador {
-  width: 12px;
-  height: 12px;
-  border: 1px solid transparent;
-  border-top: 1px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Estados de loading */
+.modal-loading {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.modal-loading .modal-content {
+  filter: blur(1px);
+}
+
+/* Mejoras para accesibilidad */
+.modal-overlay:focus {
+  outline: none;
+}
+
+.modal-content:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Efectos de hover y focus mejorados */
+.modal-close-button:active {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
+}
+
+/* Scrollbar personalizado para el modal body */
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #0056b3;
 }
 
 /* Responsive para el modal */
 @media (max-width: 640px) {
-  .modal-container-jugador {
-    margin: 16px;
-    padding: 16px;
+  .modal-overlay {
+    padding: 1rem 0.5rem;
   }
   
-  .modal-header-jugador {
-    margin: -16px -16px 16px -16px;
-    padding: 16px;
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+    margin: 1rem auto;
   }
   
-  .form-buttons-jugador {
+  .modal-header {
+    padding: 16px;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .modal-title {
+    font-size: 18px;
+    padding-right: 0;
+  }
+  
+  .modal-close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+    max-height: 75vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 98%;
+    border-radius: 6px;
+  }
+  
+  .modal-header {
+    border-radius: 4px 4px 0 0;
+    padding: 12px;
+  }
+  
+  .modal-title {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  
+  .modal-body {
+    padding: 12px;
+  }
+}
+
+/* Estados especiales */
+.modal-content.error {
+  border-color: #dc3545;
+}
+
+.modal-content.error .modal-header {
+  background-color: #dc3545;
+}
+
+.modal-content.success {
+  border-color: #28a745;
+}
+
+.modal-content.success .modal-header {
+  background-color: #28a745;
+}
+
+/* Transiciones suaves */
+.modal-overlay {
+  transition: opacity 0.3s ease;
+}
+
+.modal-content {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal-content:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+/* Mejoras para el contenido del modal */
+.modal-body > * {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Z-index específico para evitar conflictos */
+.modal-overlay {
+  z-index: 1050;
+}
+
+/* Backdrop blur para navegadores que lo soporten */
+@supports (backdrop-filter: blur(5px)) {
+  .modal-overlay {
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Estilos para modo oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #1a1a1a;
+    border-color: #007bff;
+  }
+  
+  .modal-body {
+    background-color: #2d2d2d;
+  }
+  
+  .modal-title {
+    color: white;
   }
 }
