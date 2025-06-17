@@ -1,509 +1,682 @@
-import  { useEffect, useState } from 'react';
-import { Users, Trophy, UserCheck, AlertCircle, Loader2, RefreshCw, Database } from 'lucide-react';
-import { collection, getDocs, doc } from 'firebase/firestore';
-import { db } from '../../../../src/firabase';
-import type{Juego, Grupo} from'../../../../src/core/models/verLlenado';
-const ContenedorJuego: React.FC = () => {
-  const [juegos, setJuegos] = useState<Juego[]>([]);
-  const [cargando, setCargando] = useState(true);
+import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { collection, onSnapshot, doc, DocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { db } from '../../../firabase'; // Ajusta esta ruta según donde esté tu archivo firebase
+import * as d3 from 'd3';
+
+interface Jugador {
+  id_jugador: number;
+  nombre: string;
+  nivel: number;
+}
+
+interface Partida {
+  id: string;
+  id_partida: number;
+  ronda: number;
+  equiposX: Jugador[];
+  equiposY: Jugador[];
+  resultado: string;
+}
+
+interface NodoTorneo {
+  id: string;
+  ronda: number;
+  posicion: number;
+  jugador1: Jugador | null;
+  jugador2: Jugador | null;
+}
+
+const BracketTiempoReal: React.FC = () => {
+  const [partidas, setPartidas] = useState<Partida[]>([]);
+  const [nivelesJugadores, setNivelesJugadores] = useState<{[key: number]: number}>({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  // Configuración estática de juegos
-  const configJuegos = {
-    1: { nombre: "Futbolito", icono: "⚽", descripcion: "Torneo de futbolito por grupos" },
-    2: { nombre: "Soplados", icono: "💨", descripcion: "Competencia de soplados" },
-    3: { nombre: "Ruelas", icono: "🎯", descripcion: "Competencia de ruelas" },
-    4: { nombre: "Beer Pong", icono: "🍺", descripcion: "Torneo de Beer Pong" }
+  useEffect(() => {
+    console.log('🔥 Conectando a Firebase - Árbol por Niveles');
+    
+    const partidasRef = collection(db, 'torneo', '1', 'juego', '1', 'grupos', '1', 'partidas');
+    
+    const unsubscribe = onSnapshot(
+      partidasRef,
+      (querySnapshot) => {
+        const todasLasPartidas: Partida[] = [];
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          todasLasPartidas.push({
+            id: doc.id,
+            id_partida: data.id_partida,
+            ronda: data.ronda,
+            equiposX: data.equiposX || [],
+            equiposY: data.equiposY || [],
+            resultado: data.resultado
+          });
+        });
+        
+        console.log(`📥 ${todasLasPartidas.length} partidas actualizadas:`, todasLasPartidas);
+        
+        setPartidas(todasLasPartidas);
+        setError(null);
+        setUltimaActualizacion(new Date());
+
+        // Obtener todos los IDs de jugadores únicos
+        const idsJugadores = new Set<number>();
+        todasLasPartidas.forEach(partida => {
+          [...partida.equiposX, ...partida.equiposY].forEach(jugador => {
+            idsJugadores.add(jugador.id_jugador);
+          });
+        });
+
+        // Escuchar los niveles de todos los jugadores
+        escucharNivelesJugadores(Array.from(idsJugadores));
+      },
+      (error) => {
+        console.error('💥 Error:', error);
+        setLoading(false);
+        setError(error.message);
+        setPartidas([]);
+      }
+    );
+
+    return () => {
+      console.log('🔄 Desconectando bracket');
+      unsubscribe();
+    };
+  }, []);
+
+  // Función para escuchar los niveles de los jugadores desde /jugadores/{id}
+  const escucharNivelesJugadores = (idsJugadores: number[]) => {
+    console.log('👥 Escuchando niveles de jugadores:', idsJugadores);
+    
+    const unsubscribers: (() => void)[] = [];
+    const nuevosNiveles: {[key: number]: number} = {};
+
+    idsJugadores.forEach(idJugador => {
+      const jugadorRef = doc(db, 'jugadores', idJugador.toString());
+      
+      const unsubscribe: () => void = onSnapshot(
+        jugadorRef,
+        (docSnapshot: DocumentSnapshot<DocumentData>) => {
+          if (docSnapshot.exists()) {
+        const data: { nivel?: number } = docSnapshot.data() as { nivel?: number };
+        const nivel: number = data.nivel || 0;
+        nuevosNiveles[idJugador] = nivel;
+        
+        console.log(`📊 Jugador ${idJugador} tiene nivel ${nivel}`);
+        
+        // Actualizar el estado con los nuevos niveles
+        setNivelesJugadores((prev: { [key: number]: number }) => ({...prev, [idJugador]: nivel}));
+          } else {
+        console.log(`❌ Jugador ${idJugador} no existe en /jugadores/`);
+        nuevosNiveles[idJugador] = 0;
+        setNivelesJugadores((prev: { [key: number]: number }) => ({...prev, [idJugador]: 0}));
+          }
+          
+          setLoading(false);
+        },
+        (error: Error) => {
+          console.error(`💥 Error obteniendo nivel del jugador ${idJugador}:`, error);
+          nuevosNiveles[idJugador] = 0;
+          setNivelesJugadores((prev: { [key: number]: number }) => ({...prev, [idJugador]: 0}));
+        }
+      );
+
+      unsubscribers.push(unsubscribe);
+    });
+
+    // Limpiar listeners anteriores cuando cambien los jugadores
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
   };
 
-  // Función para obtener datos desde Firebase con la estructura correcta
-  const cargarDatosJuegos = async () => {
-    setCargando(true);
-    setError(null);
-    
-    try {
-      console.log('🔥 Cargando datos desde Firebase con estructura: /torneo/1/juego/{idJuego}');
-      
-      const juegosData: Juego[] = [];
-
-      // Iterar sobre cada juego configurado
-      for (const [juegoIdStr, config] of Object.entries(configJuegos)) {
-        const juegoId = parseInt(juegoIdStr);
-        console.log(`📊 Procesando juego ${juegoId}: ${config.nombre}`);
-
-        try {
-          // Construir la ruta correcta: /torneo/1/juego/{idJuego}
-          const juegoDocRef = doc(db, 'torneo', '1', 'juego', juegoId.toString());
-          
-          // Obtener todas las subcollecciones del documento del juego
-          // Como no podemos listar subcollecciones directamente, vamos a intentar acceder a las colecciones comunes
-          const posiblesSubcolecciones = [
-            'grupos',
-            'group', 
-            'participantes',
-            'players',
-            'teams',
-            'equipos',
-            'parejas'
-          ];
-
-          const grupos: Grupo[] = [];
-          let totalJugadoresJuego = 0;
-          let capacidadTotalJuego = 0;
-          let subcoleccionEncontrada = false;
-
-          // Intentar cada posible subcollección
-          for (const nombreSubcoleccion of posiblesSubcolecciones) {
-            try {
-              console.log(`🔍 Intentando subcollección: torneo/1/juego/${juegoId}/${nombreSubcoleccion}`);
-              
-              const subcoleccionRef = collection(juegoDocRef, nombreSubcoleccion);
-              const snapshot = await getDocs(subcoleccionRef);
-
-              if (!snapshot.empty) {
-                console.log(`✅ Subcollección '${nombreSubcoleccion}' encontrada para ${config.nombre} con ${snapshot.size} documentos`);
-                subcoleccionEncontrada = true;
-
-                // Procesar cada documento de la subcollección
-                snapshot.docs.forEach((grupoDoc, index) => {
-                  const grupoData = grupoDoc.data();
-                  console.log(`📄 Grupo ${grupoDoc.id}:`, grupoData);
-
-                  // Contar jugadores basado en diferentes estructuras posibles
-                  let numJugadores = 0;
-                  
-                  if (grupoData.participantes && Array.isArray(grupoData.participantes)) {
-                    numJugadores = grupoData.participantes.length;
-                  } else if (grupoData.jugadores && Array.isArray(grupoData.jugadores)) {
-                    numJugadores = grupoData.jugadores.length;
-                  } else if (grupoData.players && Array.isArray(grupoData.players)) {
-                    numJugadores = grupoData.players.length;
-                  } else if (grupoData.parejas && Array.isArray(grupoData.parejas)) {
-                    numJugadores = grupoData.parejas.length * 2; // Asumiendo parejas
-                  } else if (grupoData.teams && Array.isArray(grupoData.teams)) {
-                    numJugadores = grupoData.teams.length;
-                  } else if (typeof grupoData.count === 'number') {
-                    numJugadores = grupoData.count;
-                  } else {
-                    // Si no hay estructura clara, contar las propiedades numéricas
-                    const keys = Object.keys(grupoData);
-                    numJugadores = keys.filter(key => 
-                      typeof grupoData[key] === 'object' && grupoData[key] !== null
-                    ).length;
-                  }
-
-                  const capacidadMaxima = grupoData.capacidad_maxima || grupoData.maxCapacity || 12;
-
-                  grupos.push({
-                    id: grupoDoc.id,
-                    nombre: grupoData.nombre || `Grupo ${index + 1}`,
-                    jugadores: numJugadores,
-                    capacidadMaxima: capacidadMaxima,
-                    activo: grupoData.activo !== false,
-                    datos: grupoData
-                  });
-
-                  totalJugadoresJuego += numJugadores;
-                  capacidadTotalJuego += capacidadMaxima;
-                });
-
-                break; // Salir del loop si encontramos una subcollección válida
-              }
-            } catch (subError) {
-              console.log(`ℹ️ Subcollección '${nombreSubcoleccion}' no existe para juego ${juegoId}`);
-            }
-          }
-
-          // Si no se encontró ninguna subcollección, buscar datos directamente en el documento del juego
-          if (!subcoleccionEncontrada) {
-            try {
-              console.log(`🔍 Buscando datos directamente en el documento del juego ${juegoId}`);
-              
-              const juegoDocSnapshot = await getDocs(collection(db, 'torneo', '1', 'juego'));
-              const juegoDoc = juegoDocSnapshot.docs.find(doc => doc.id === juegoId.toString());
-              
-              if (juegoDoc && juegoDoc.exists()) {
-                const juegoData = juegoDoc.data();
-                console.log(`📄 Datos del juego ${juegoId}:`, juegoData);
-
-                // Si hay datos en el documento principal, crear un grupo virtual
-                if (Object.keys(juegoData).length > 0) {
-                  grupos.push({
-                    id: 'principal',
-                    nombre: 'Datos del Juego',
-                    jugadores: 0, // Lo ajustaremos según los datos encontrados
-                    capacidadMaxima: 50,
-                    activo: true,
-                    datos: juegoData
-                  });
-                }
-              }
-            } catch (docError) {
-              console.log(`ℹ️ No se pudo acceder al documento del juego ${juegoId}`);
-            }
-          }
-
-          // Crear objeto del juego
-          const estadoJuego = grupos.length > 0 ? 
-            (totalJugadoresJuego > 0 ? 'con_datos' : 'sin_datos') : 
-            'sin_datos';
-
-          juegosData.push({
-            id: juegoId,
-            nombre: config.nombre,
-            icono: config.icono,
-            descripcion: config.descripcion,
-            grupos: grupos,
-            totalJugadores: totalJugadoresJuego,
-            capacidadTotal: capacidadTotalJuego || (grupos.length * 12), // Fallback
-            estado: estadoJuego
-          });
-
-          console.log(`✅ Juego ${config.nombre} procesado: ${totalJugadoresJuego}/${capacidadTotalJuego} jugadores en ${grupos.length} grupos`);
-
-        } catch (juegoError) {
-          console.error(`❌ Error procesando juego ${config.nombre}:`, juegoError);
-          
-          // Agregar juego vacío para mostrar que existe pero sin datos
-          juegosData.push({
-            id: juegoId,
-            nombre: config.nombre,
-            icono: config.icono,
-            descripcion: config.descripcion,
-            grupos: [],
-            totalJugadores: 0,
-            capacidadTotal: 0,
-            estado: 'sin_datos'
-          });
+  // Crear estructura completa del árbol basada en niveles reales de jugadores
+  const crearEstructuraCompleta = (partidas: Partida[], niveles: {[key: number]: number}): NodoTorneo[][] => {
+    // Obtener todos los jugadores únicos con sus niveles reales
+    const todosLosJugadores: Jugador[] = [];
+    partidas.forEach(partida => {
+      [...partida.equiposX, ...partida.equiposY].forEach(jugadorPartida => {
+        const nivelReal = niveles[jugadorPartida.id_jugador] || 0;
+        const jugadorConNivelReal: Jugador = {
+          ...jugadorPartida,
+          nivel: nivelReal
+        };
+        
+        const yaExiste = todosLosJugadores.find(j => j.id_jugador === jugadorConNivelReal.id_jugador);
+        if (!yaExiste) {
+          todosLosJugadores.push(jugadorConNivelReal);
+        } else {
+          // Actualizar con el nivel real si ya existe
+          const index = todosLosJugadores.findIndex(j => j.id_jugador === jugadorConNivelReal.id_jugador);
+          todosLosJugadores[index] = jugadorConNivelReal;
         }
+      });
+    });
+
+    console.log('👥 Todos los jugadores con niveles reales:', todosLosJugadores);
+
+    // Determinar cuántas rondas necesitamos
+    const partidasRonda1 = partidas.filter(p => p.ronda === 1);
+    const numPartidasIniciales = Math.max(partidasRonda1.length, 4);
+    
+    // Calcular número de rondas correctamente para soportar hasta 16 partidas
+    // 16 partidas -> 5 rondas (16->8->4->2->1)
+    // 8 partidas -> 4 rondas (8->4->2->1)
+    // 4 partidas -> 3 rondas (4->2->1)
+    const numRondas = Math.floor(Math.log2(numPartidasIniciales)) + 2;
+    
+    console.log(`🌳 Creando árbol: ${numPartidasIniciales} partidas iniciales, ${numRondas} rondas`);
+
+    const estructura: NodoTorneo[][] = [];
+
+    // Crear estructura completa ronda por ronda
+    for (let ronda = 1; ronda <= numRondas; ronda++) {
+      let partidasEnRonda;
+      
+      if (ronda === 1) {
+        // Primera ronda: usar el número real de partidas
+        partidasEnRonda = numPartidasIniciales;
+      } else if (ronda === numRondas) {
+        // Última ronda: solo 1 nodo para el ganador final
+        partidasEnRonda = 1;
+      } else {
+        // Rondas intermedias: dividir por 2
+        const partidasRondaAnterior = ronda === 2 ? numPartidasIniciales : 
+                                     Math.ceil(numPartidasIniciales / Math.pow(2, ronda - 2));
+        partidasEnRonda = Math.max(1, Math.ceil(partidasRondaAnterior / 2));
       }
 
-      console.log('🎉 Carga completa de juegos:', juegosData);
-      setJuegos(juegosData);
-      setUltimaActualizacion(new Date());
+      const nodosRonda: NodoTorneo[] = [];
 
-    } catch (error) {
-      console.error('💥 Error general al cargar datos:', error);
-      setError(`Error al cargar los datos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-    } finally {
-      setCargando(false);
+      for (let pos = 0; pos < partidasEnRonda; pos++) {
+        const nodo: NodoTorneo = {
+          id: `r${ronda}_p${pos + 1}`,
+          ronda,
+          posicion: pos,
+          jugador1: null,
+          jugador2: null
+        };
+
+        nodosRonda.push(nodo);
+      }
+
+      estructura.push(nodosRonda);
+      console.log(`📊 Ronda ${ronda}: ${partidasEnRonda} nodos creados`);
+    }
+
+    // Llenar ronda 1 con las partidas originales (nivel 0 y superior)
+    partidas.filter(p => p.ronda === 1).forEach(partida => {
+      const partidaIndex = partida.id_partida - 1;
+      if (partidaIndex >= 0 && partidaIndex < estructura[0].length) {
+        const nodo = estructura[0][partidaIndex];
+        
+        // Colocar todos los jugadores en la ronda inicial, independientemente de su nivel
+        const jugadorX = partida.equiposX[0];
+        const jugadorY = partida.equiposY[0];
+        
+        if (jugadorX) {
+          const nivelRealX = niveles[jugadorX.id_jugador] || 0;
+          nodo.jugador1 = {...jugadorX, nivel: nivelRealX};
+        }
+        
+        if (jugadorY) {
+          const nivelRealY = niveles[jugadorY.id_jugador] || 0;
+          nodo.jugador2 = {...jugadorY, nivel: nivelRealY};
+        }
+      }
+    });
+
+    // Propagar jugadores a rondas superiores basado en su nivel real
+    // MANTENIENDO una copia en la ronda anterior
+    todosLosJugadores.forEach(jugador => {
+      if (jugador.nivel > 0) {
+        colocarJugadorEnRondaPorNivel(estructura, jugador);
+      }
+    });
+
+    return estructura;
+  };
+
+  // Colocar jugador en la ronda correspondiente según su nivel
+  // MANTIENE una copia en la ronda anterior para mostrar historial
+  const colocarJugadorEnRondaPorNivel = (estructura: NodoTorneo[][], jugador: Jugador) => {
+    const rondaDestino = jugador.nivel; // nivel 1 = ronda 2 (índice 1)
+    
+    if (rondaDestino >= estructura.length) {
+      console.log(`⚠️ Nivel ${jugador.nivel} demasiado alto para ${jugador.nombre} - solo hay ${estructura.length} rondas`);
+      return;
+    }
+
+    const ronda = estructura[rondaDestino];
+    
+    // Buscar si el jugador ya está colocado en esta ronda
+    let yaColocado = false;
+    for (let i = 0; i < ronda.length; i++) {
+      const nodo = ronda[i];
+      if (nodo.jugador1?.id_jugador === jugador.id_jugador || 
+          nodo.jugador2?.id_jugador === jugador.id_jugador) {
+        // Ya está colocado, solo actualizar
+        if (nodo.jugador1?.id_jugador === jugador.id_jugador) {
+          nodo.jugador1 = jugador;
+        } else {
+          nodo.jugador2 = jugador;
+        }
+        yaColocado = true;
+        console.log(`🔄 Jugador ${jugador.nombre} actualizado en ronda ${rondaDestino + 1}, nodo ${i + 1}`);
+        break;
+      }
+    }
+
+    // Si no está colocado, buscar el primer slot disponible
+    if (!yaColocado) {
+      // Algoritmo de colocación distribuida para evitar concentración
+      const posicionPreferida = Math.floor((jugador.id_jugador - 1) / 2) % ronda.length;
+      
+      for (let attempt = 0; attempt < ronda.length; attempt++) {
+        const i = (posicionPreferida + attempt) % ronda.length;
+        const nodo = ronda[i];
+        
+        if (!nodo.jugador1) {
+          nodo.jugador1 = jugador;
+          console.log(`✅ Jugador ${jugador.nombre} (nivel ${jugador.nivel}) colocado en ronda ${rondaDestino + 1}, nodo ${i + 1}, slot 1`);
+          return;
+        } else if (!nodo.jugador2) {
+          nodo.jugador2 = jugador;
+          console.log(`✅ Jugador ${jugador.nombre} (nivel ${jugador.nivel}) colocado en ronda ${rondaDestino + 1}, nodo ${i + 1}, slot 2`);
+          return;
+        }
+      }
+      
+      console.log(`⚠️ No se pudo colocar jugador ${jugador.nombre} (nivel ${jugador.nivel}) en ronda ${rondaDestino + 1} - todos los nodos están llenos`);
     }
   };
 
+  // Dibujar bracket con D3
   useEffect(() => {
-    cargarDatosJuegos();
-  }, []);
+    if (!svgRef.current || partidas.length === 0) return;
 
-  if (cargando) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Loader2 size={20} />
-          <span>Cargando datos desde Firebase...</span>
-        </div>
-      </div>
-    );
+    console.log('🎨 Dibujando árbol por niveles reales con D3');
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    const estructura = crearEstructuraCompleta(partidas, nivelesJugadores);
+    
+    if (estructura.length === 0) {
+      const width = 1200;
+      const height = 600;
+      svg.attr("width", width).attr("height", height);
+      
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "24px")
+        .style("fill", "#9ca3af")
+        .text("No hay partidas - Creando estructura básica...");
+      return;
+    }
+
+    // Calcular dimensiones
+    const maxPartidas = Math.max(...estructura.map(ronda => ronda.length));
+    const width = estructura.length * 250 + 100;
+    const height = maxPartidas * 100 + 100;
+    
+    svg.attr("width", width).attr("height", height);
+
+    const rondaWidth = 250;
+    const margin = 50;
+
+    console.log('📊 Estructura final del árbol:', estructura);
+
+    estructura.forEach((ronda, rondaIndex) => {
+      const x = margin + (rondaIndex * rondaWidth);
+      const nodosEnRonda = ronda.length;
+      const espacioVertical = Math.max(100, (height - 2 * margin) / nodosEnRonda);
+
+      // Título de la ronda
+      const tituloRonda = rondaIndex === 0 ? 'RONDA INICIAL' :
+                         rondaIndex === estructura.length - 1 ? 'GANADOR FINAL' :
+                         rondaIndex === estructura.length - 2 ? 'FINAL' :
+                         nodosEnRonda === 2 ? 'SEMIFINAL' :
+                         nodosEnRonda === 4 ? 'CUARTOS' :
+                         nodosEnRonda === 8 ? 'OCTAVOS' :
+                         `Ronda ${rondaIndex + 1}`;
+
+      svg.append("text")
+        .attr("x", x + rondaWidth / 2)
+        .attr("y", 30)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-weight", "bold")
+        .style("fill", "#1f2937")
+        .text(tituloRonda);
+
+      // Subtítulo con nivel (excepto para el ganador final)
+      if (rondaIndex < estructura.length - 1) {
+        svg.append("text")
+          .attr("x", x + rondaWidth / 2)
+          .attr("y", 45)
+          .attr("text-anchor", "middle")
+          .style("font-size", "11px")
+          .style("fill", "#6b7280")
+          .text(`(Jugadores Nivel ${rondaIndex}+)`);
+      } else {
+        svg.append("text")
+          .attr("x", x + rondaWidth / 2)
+          .attr("y", 45)
+          .attr("text-anchor", "middle")
+          .style("font-size", "11px")
+          .style("fill", "#dc2626")
+          .text("(Campeón del Torneo)");
+      }
+
+      ronda.forEach((nodo, nodoIndex) => {
+        const y = margin + (nodoIndex * espacioVertical) + (espacioVertical / 2);
+
+        // Rectángulo del nodo
+        svg.append("rect")
+          .attr("x", x)
+          .attr("y", y - 40)
+          .attr("width", rondaWidth - 50)
+          .attr("height", 80)
+          .attr("rx", 6)
+          .style("fill", "#ffffff")
+          .style("stroke", "#e5e7eb")
+          .style("stroke-width", 2);
+
+        // Tratamiento especial para el nodo final (ganador absoluto)
+        if (rondaIndex === estructura.length - 1) {
+          // Solo mostrar el ganador, sin VS
+          const ganador = nodo.jugador1 || nodo.jugador2;
+          if (ganador) {
+            // Rectángulo especial para el ganador
+            svg.append("rect")
+              .attr("x", x + 10)
+              .attr("y", y - 25)
+              .attr("width", rondaWidth - 60)
+              .attr("height", 50)
+              .attr("rx", 8)
+              .style("fill", "#fef3c7")
+              .style("stroke", "#f59e0b")
+              .style("stroke-width", 3);
+
+            // Corona
+            svg.append("text")
+              .attr("x", x + rondaWidth / 2 - 25)
+              .attr("y", y - 5)
+              .attr("text-anchor", "middle")
+              .style("font-size", "24px")
+              .text("👑");
+
+            // Nombre del ganador
+            svg.append("text")
+              .attr("x", x + rondaWidth / 2 - 25)
+              .attr("y", y + 15)
+              .attr("text-anchor", "middle")
+              .style("font-size", "14px")
+              .style("font-weight", "bold")
+              .style("fill", "#92400e")
+              .text(`${ganador.nombre}`);
+
+            // Nivel del ganador
+            svg.append("text")
+              .attr("x", x + rondaWidth / 2 - 25)
+              .attr("y", y + 30)
+              .attr("text-anchor", "middle")
+              .style("font-size", "11px")
+              .style("fill", "#92400e")
+              .text(`Nivel ${ganador.nivel}`);
+          } else {
+            // Esperando al ganador final
+            svg.append("rect")
+              .attr("x", x + 10)
+              .attr("y", y - 25)
+              .attr("width", rondaWidth - 60)
+              .attr("height", 50)
+              .attr("rx", 8)
+              .style("fill", "#f9fafb")
+              .style("stroke", "#d1d5db")
+              .style("stroke-width", 2)
+              .style("stroke-dasharray", "5,5");
+
+            svg.append("text")
+              .attr("x", x + rondaWidth / 2 - 25)
+              .attr("y", y)
+              .attr("text-anchor", "middle")
+              .style("font-size", "14px")
+              .style("fill", "#9ca3af")
+              .text("Esperando");
+
+            svg.append("text")
+              .attr("x", x + rondaWidth / 2 - 25)
+              .attr("y", y + 15)
+              .attr("text-anchor", "middle")
+              .style("font-size", "14px")
+              .style("fill", "#9ca3af")
+              .text("Campeón...");
+          }
+        } else {
+          // Nodos normales de VS
+          // Jugador 1
+          const jugador1Texto = nodo.jugador1 ? 
+            `${nodo.jugador1.nombre} (Nivel ${nodo.jugador1.nivel})` : 
+            "Esperando...";
+          
+          // Determinar si el jugador avanzó (nivel > ronda actual)
+          const jugador1Avanzo = nodo.jugador1 && nodo.jugador1.nivel > rondaIndex;
+          
+          svg.append("rect")
+            .attr("x", x + 5)
+            .attr("y", y - 35)
+            .attr("width", rondaWidth - 60)
+            .attr("height", 20)
+            .attr("rx", 3)
+            .style("fill", nodo.jugador1 ? 
+              (jugador1Avanzo ? "#dcfce7" : "#eff6ff") : "#f9fafb")
+            .style("stroke", nodo.jugador1 ? 
+              (jugador1Avanzo ? "#16a34a" : "#bfdbfe") : "#e5e7eb")
+            .style("stroke-width", jugador1Avanzo ? 2 : 1);
+
+          svg.append("text")
+            .attr("x", x + 10)
+            .attr("y", y - 22)
+            .style("font-size", "11px")
+            .style("font-weight", nodo.jugador1 ? "600" : "400")
+            .style("fill", nodo.jugador1 ? 
+              (jugador1Avanzo ? "#15803d" : "#1e40af") : "#9ca3af")
+            .text(jugador1Texto);
+
+          // Indicador de avance para jugador 1
+          if (jugador1Avanzo) {
+            svg.append("text")
+              .attr("x", x + rondaWidth - 70)
+              .attr("y", y - 22)
+              .style("font-size", "12px")
+              .style("fill", "#15803d")
+              .text("✓");
+          }
+
+          // VS
+          svg.append("text")
+            .attr("x", x + rondaWidth / 2 - 25)
+            .attr("y", y - 5)
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("font-weight", "bold")
+            .style("fill", "#7c3aed")
+            .text("VS");
+
+          // Jugador 2
+          const jugador2Texto = nodo.jugador2 ? 
+            `${nodo.jugador2.nombre} (Nivel ${nodo.jugador2.nivel})` : 
+            "Esperando...";
+          
+          // Determinar si el jugador avanzó (nivel > ronda actual)
+          const jugador2Avanzo = nodo.jugador2 && nodo.jugador2.nivel > rondaIndex;
+          
+          svg.append("rect")
+            .attr("x", x + 5)
+            .attr("y", y + 15)
+            .attr("width", rondaWidth - 60)
+            .attr("height", 20)
+            .attr("rx", 3)
+            .style("fill", nodo.jugador2 ? 
+              (jugador2Avanzo ? "#dcfce7" : "#f0fdf4") : "#f9fafb")
+            .style("stroke", nodo.jugador2 ? 
+              (jugador2Avanzo ? "#16a34a" : "#bbf7d0") : "#e5e7eb")
+            .style("stroke-width", jugador2Avanzo ? 2 : 1);
+
+          svg.append("text")
+            .attr("x", x + 10)
+            .attr("y", y + 28)
+            .style("font-size", "11px")
+            .style("font-weight", nodo.jugador2 ? "600" : "400")
+            .style("fill", nodo.jugador2 ? 
+              (jugador2Avanzo ? "#15803d" : "#15803d") : "#9ca3af")
+            .text(jugador2Texto);
+
+          // Indicador de avance para jugador 2
+          if (jugador2Avanzo) {
+            svg.append("text")
+              .attr("x", x + rondaWidth - 70)
+              .attr("y", y + 28)
+              .style("font-size", "12px")
+              .style("fill", "#15803d")
+              .text("✓");
+          }
+        }
+
+        // ID del nodo (debug)
+        svg.append("text")
+          .attr("x", x + rondaWidth - 45)
+          .attr("y", y - 35)
+          .style("font-size", "9px")
+          .style("fill", "#9ca3af")
+          .text(`${nodoIndex + 1}`);
+
+        // Conexiones hacia la siguiente ronda
+        if (rondaIndex < estructura.length - 1) {
+          const siguienteRonda = estructura[rondaIndex + 1];
+          const targetNodoIndex = Math.floor(nodoIndex / 2);
+          
+          if (targetNodoIndex < siguienteRonda.length) {
+            const nextX = x + rondaWidth;
+            const nextEspacioVertical = Math.max(100, (height - 2 * margin) / siguienteRonda.length);
+            const targetY = margin + (targetNodoIndex * nextEspacioVertical) + (nextEspacioVertical / 2);
+
+            // Línea horizontal
+            svg.append("line")
+              .attr("x1", x + rondaWidth - 50)
+              .attr("y1", y)
+              .attr("x2", nextX - 25)
+              .attr("y2", y)
+              .style("stroke", "#6b7280")
+              .style("stroke-width", 2);
+
+            // Conexión en pares
+            if (nodoIndex % 2 === 1) {
+              const prevY = margin + ((nodoIndex - 1) * espacioVertical) + (espacioVertical / 2);
+              
+              // Línea vertical
+              svg.append("line")
+                .attr("x1", nextX - 25)
+                .attr("y1", prevY)
+                .attr("x2", nextX - 25)
+                .attr("y2", y)
+                .style("stroke", "#6b7280")
+                .style("stroke-width", 2);
+
+              // Línea hacia el siguiente nodo
+              svg.append("line")
+                .attr("x1", nextX - 25)
+                .attr("y1", (prevY + y) / 2)
+                .attr("x2", nextX)
+                .attr("y2", targetY)
+                .style("stroke", "#6b7280")
+                .style("stroke-width", 2);
+            }
+          }
+        }
+      });
+    });
+
+  }, [partidas, nivelesJugadores]);
+
+  if (loading) {
+    return <div style={{padding: '20px'}}>Cargando árbol por niveles...</div>;
   }
 
   if (error) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#dc2626' }}>
-          <AlertCircle size={20} />
-          <span>{error}</span>
-          <button 
-            onClick={cargarDatosJuegos}
-            style={{
-              padding: '5px 10px',
-              backgroundColor: '#dc2626',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
+    return <div style={{padding: '20px', color: 'red'}}>Error: {error}</div>;
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '30px' }}>
-        <h1 style={{ margin: '0 0 10px 0', fontSize: '24px', color: '#1f2937' }}>
-          Estado de Juegos y Grupos
-        </h1>
-        <p style={{ margin: '0', color: '#6b7280', fontSize: '16px' }}>
-          Monitoreo del llenado de grupos (Estructura: /torneo/1/juego/*)
-        </p>
-        {ultimaActualizacion && (
-          <p style={{ margin: '5px 0 0 0', color: '#9ca3af', fontSize: '14px' }}>
-            Última actualización: {ultimaActualizacion.toLocaleTimeString()}
-          </p>
-        )}
-      </div>
-
-      {/* Botón actualizar */}
-      <button 
-        onClick={cargarDatosJuegos}
-        disabled={cargando}
-        style={{
-          padding: '10px 15px',
-          backgroundColor: '#f3f4f6',
-          color: '#374151',
-          border: '1px solid #d1d5db',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}
-      >
-        <RefreshCw size={16} />
-        Actualizar datos
-      </button>
-
-      {/* Grid de juegos */}
+    <div style={{padding: '20px'}}>
+      <h2>🌳 Árbol de Torneo por Niveles</h2>
+      <p><strong>Total partidas:</strong> {partidas.length}</p>
+      {ultimaActualizacion && (
+        <p><strong>Última actualización:</strong> {ultimaActualizacion.toLocaleString()}</p>
+      )}
+      
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-        gap: '20px'
+        marginBottom: '20px',
+        padding: '16px',
+        backgroundColor: '#f0f9ff',
+        borderRadius: '8px',
+        border: '1px solid #0284c7'
       }}>
-        {juegos.map((juego) => {
-          const porcentajeTotal = juego.capacidadTotal > 0 ? 
-            Math.round((juego.totalJugadores / juego.capacidadTotal) * 100) : 0;
-          
-          return (
-            <div key={juego.id} style={{
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              backgroundColor: 'white'
-            }}>
-              {/* Header del juego */}
-              <div style={{
-                backgroundColor: juego.estado === 'con_datos' ? '#16a34a' : 
-                               juego.estado === 'sin_datos' ? '#6b7280' : '#3b82f6',
-                color: 'white',
-                padding: '15px',
-                borderRadius: '8px 8px 0 0'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '24px' }}>{juego.icono}</span>
-                    <div>
-                      <h3 style={{ margin: '0', fontSize: '18px' }}>{juego.nombre}</h3>
-                      <span style={{ fontSize: '12px', opacity: '0.8' }}>
-                        ID: {juego.id} | Estado: {juego.estado}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <UserCheck size={16} />
-                    <span>{juego.totalJugadores}/{juego.capacidadTotal || 0}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contenido */}
-              <div style={{ padding: '15px' }}>
-                {/* Descripción */}
-                <p style={{ margin: '0 0 15px 0', color: '#6b7280', fontSize: '14px' }}>
-                  {juego.descripcion}
-                </p>
-
-                {juego.grupos.length > 0 ? (
-                  <>
-                    {/* Progreso total */}
-                    {juego.capacidadTotal > 0 && (
-                      <div style={{ marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                          <span style={{ fontSize: '14px', fontWeight: '600' }}>Progreso Total</span>
-                          <span style={{ fontSize: '14px' }}>{porcentajeTotal}%</span>
-                        </div>
-                        <div style={{
-                          width: '100%',
-                          height: '8px',
-                          backgroundColor: '#f3f4f6',
-                          borderRadius: '4px'
-                        }}>
-                          <div style={{
-                            width: `${porcentajeTotal}%`,
-                            height: '100%',
-                            backgroundColor: '#3b82f6',
-                            borderRadius: '4px'
-                          }} />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Grupos */}
-                    <div>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '8px', 
-                        marginBottom: '15px',
-                        fontWeight: '600',
-                        fontSize: '14px'
-                      }}>
-                        <Users size={16} style={{ color: '#3b82f6' }} />
-                        <span>Grupos encontrados ({juego.grupos.length})</span>
-                      </div>
-
-                      {/* Lista de grupos */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {juego.grupos.map((grupo) => {
-                          const porcentajeGrupo = grupo.capacidadMaxima > 0 ? 
-                            Math.round((grupo.jugadores / grupo.capacidadMaxima) * 100) : 0;
-                          
-                          return (
-                            <div key={grupo.id} style={{
-                              padding: '10px',
-                              backgroundColor: '#f8fafc',
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '6px'
-                            }}>
-                              <div style={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center',
-                                marginBottom: '8px'
-                              }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '14px', fontWeight: '600' }}>
-                                    {grupo.nombre}
-                                  </span>
-                                  <span style={{
-                                    fontSize: '12px',
-                                    backgroundColor: '#e5e7eb',
-                                    color: '#6b7280',
-                                    padding: '2px 6px',
-                                    borderRadius: '3px'
-                                  }}>
-                                    ID: {grupo.id}
-                                  </span>
-                                </div>
-                                <span style={{
-                                  fontSize: '12px',
-                                  fontWeight: '600',
-                                  color: porcentajeGrupo === 100 ? '#dc2626' : 
-                                         porcentajeGrupo >= 80 ? '#f59e0b' : '#16a34a'
-                                }}>
-                                  {porcentajeGrupo === 100 ? 'Completo' :
-                                   porcentajeGrupo >= 80 ? 'Casi lleno' : 'Disponible'}
-                                </span>
-                              </div>
-                              
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-                                <Users size={12} />
-                                <span>{grupo.jugadores}/{grupo.capacidadMaxima} jugadores ({porcentajeGrupo}%)</span>
-                              </div>
-                              
-                              {/* Barra de progreso del grupo */}
-                              {grupo.capacidadMaxima > 0 && (
-                                <div style={{
-                                  width: '100%',
-                                  height: '4px',
-                                  backgroundColor: '#e5e7eb',
-                                  borderRadius: '2px',
-                                  marginTop: '6px'
-                                }}>
-                                  <div style={{
-                                    width: `${porcentajeGrupo}%`,
-                                    height: '100%',
-                                    backgroundColor: porcentajeGrupo === 100 ? '#dc2626' :
-                                                    porcentajeGrupo >= 80 ? '#f59e0b' : '#3b82f6',
-                                    borderRadius: '2px'
-                                  }} />
-                                </div>
-                              )}
-
-                              {/* Mostrar datos adicionales si existen */}
-                              {grupo.datos && Object.keys(grupo.datos).length > 0 && (
-                                <details style={{ marginTop: '8px' }}>
-                                  <summary style={{ 
-                                    fontSize: '12px', 
-                                    color: '#6b7280', 
-                                    cursor: 'pointer'
-                                  }}>
-                                    Ver datos del grupo
-                                  </summary>
-                                  <pre style={{
-                                    fontSize: '10px',
-                                    backgroundColor: '#f9fafb',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    marginTop: '4px',
-                                    overflow: 'auto',
-                                    maxHeight: '150px'
-                                  }}>
-                                    {JSON.stringify(grupo.datos, null, 2)}
-                                  </pre>
-                                </details>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  /* Sin grupos */
-                  <div style={{
-                    textAlign: 'center',
-                    padding: '40px 20px',
-                    color: '#6b7280',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px',
-                    border: '2px dashed #d1d5db'
-                  }}>
-                    <Database size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-                    <h4 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Sin datos de grupos</h4>
-                    <p style={{ margin: '0', fontSize: '14px' }}>
-                      No se encontraron datos en: /torneo/1/juego/{juego.id}
-                    </p>
-                    <p style={{ margin: '8px 0 0 0', fontSize: '12px', opacity: 0.7 }}>
-                      Los jugadores pueden agregarse aquí cuando sea necesario
-                    </p>
-                  </div>
-                )}
-
-                {/* Resumen */}
-                <div style={{ 
-                  marginTop: '20px', 
-                  paddingTop: '15px', 
-                  borderTop: '1px solid #e5e7eb',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '5px',
-                  fontSize: '13px',
-                  color: '#6b7280'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Trophy size={12} />
-                    <span>Grupos configurados: {juego.grupos.length}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={12} />
-                    <span>Jugadores asignados: {juego.totalJugadores}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <UserCheck size={12} />
-                    <span>Capacidad total: {juego.capacidadTotal}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        <h4 style={{margin: '0 0 8px 0', color: '#0369a1'}}>🎯 Sistema por Niveles con Historial:</h4>
+        <ul style={{margin: 0, paddingLeft: '20px', color: '#075985', fontSize: '14px'}}>
+          <li><strong>Nivel 0:</strong> Jugadores en ronda inicial (no han ganado)</li>
+          <li><strong>Nivel 1+:</strong> Jugadores que ganaron avanzan a siguientes rondas</li>
+          <li><strong>Historial completo:</strong> Los jugadores permanecen en rondas anteriores con ✓ verde</li>
+          <li><strong>Tiempo real:</strong> Se actualiza automáticamente cuando el admin cambia niveles</li>
+        </ul>
       </div>
+      
+      <div style={{
+        border: '2px solid #e5e7eb',
+        borderRadius: '8px',
+        padding: '20px',
+        backgroundColor: '#f9fafb',
+        overflow: 'auto'
+      }}>
+        <svg ref={svgRef}></svg>
+      </div>
+
+      {/* Debug info */}
+      <details style={{marginTop: '20px'}}>
+        <summary style={{cursor: 'pointer', fontWeight: 'bold'}}>Ver niveles reales de jugadores (debug)</summary>
+        <div style={{
+          backgroundColor: '#f5f5f5',
+          padding: '16px',
+          borderRadius: '4px',
+          border: '1px solid #ddd',
+          fontSize: '14px',
+          marginTop: '10px'
+        }}>
+          <h4>Niveles desde /jugadores/:</h4>
+          <pre style={{fontSize: '12px', margin: 0}}>
+            {JSON.stringify(nivelesJugadores, null, 2)}
+          </pre>
+          
+          <h4 style={{marginTop: '16px'}}>Partidas con jugadores:</h4>
+          <pre style={{fontSize: '12px', margin: 0, maxHeight: '200px', overflow: 'auto'}}>
+            {JSON.stringify(partidas.map(p => ({
+              partida: p.id_partida,
+              equiposX: p.equiposX.map(j => `${j.nombre} (ID: ${j.id_jugador}, Nivel Real: ${nivelesJugadores[j.id_jugador] || 'Cargando...'})`),
+              equiposY: p.equiposY.map(j => `${j.nombre} (ID: ${j.id_jugador}, Nivel Real: ${nivelesJugadores[j.id_jugador] || 'Cargando...'})`)
+            })), null, 2)}
+          </pre>
+        </div>
+      </details>
     </div>
   );
 };
 
-export default ContenedorJuego;
+export default BracketTiempoReal;

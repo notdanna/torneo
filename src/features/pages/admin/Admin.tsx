@@ -1,7 +1,53 @@
+import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
-import type { ApiResponse, Partida} from '../../../core/models/admin';
+import { ArrowLeft, Filter, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers, Eye } from 'lucide-react';
 
+// --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
+interface ApiJugador {
+  id_jugador: number;
+  nombre: string;
+  empresa: string;
+  nombreAcompanante: string;
+  empresaAcompanante: string;
+  nivel: number;
+}
+
+interface ApiPartida {
+  id_partida: number;
+  id_juego: number;
+  id_grupo: number;
+  ronda: number;
+  equiposX: ApiJugador[];
+  equiposY: ApiJugador[];
+  resultado: string;
+}
+
+interface ApiResponse {
+  message: string;
+  details: {
+    juego: string;
+    grupo: string;
+    total_partidas: number;
+    total_rondas: number;
+  };
+  rondas: {
+    [key: string]: ApiPartida[];
+  };
+}
+
+// INTERFACES INTERNAS DEL COMPONENTE
+interface Jugador {
+  id: string;
+  nombre: string;
+  nombreAcompanante: string;
+  nivel: number;
+}
+
+interface Partida {
+  id: number;
+  ronda: number;
+  jugadores: Jugador[];
+}
 
 const AdministrarGrupoJuego = () => {
   // Estado para las partidas
@@ -10,12 +56,12 @@ const AdministrarGrupoJuego = () => {
   // Estados para la UI
   const [idJuego, setIdJuego] = useState('1');
   const [idGrupo, setIdGrupo] = useState('1');
-  const [filtroNivel] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   
-  // Estados para filtrar por ronda
+  // Estados para filtrar
   const [availableRondas, setAvailableRondas] = useState<number[]>([]);
   const [rondaSeleccionada, setRondaSeleccionada] = useState<string>('todas');
+  const [mostrarSoloPerdedores, setMostrarSoloPerdedores] = useState(false); // Nuevo estado para el filtro de perdedores
 
   // Estados para crear ronda
   const [numPartidas, setNumPartidas] = useState('');
@@ -30,7 +76,6 @@ const AdministrarGrupoJuego = () => {
   const [updatingLevel, setUpdatingLevel] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [winners, setWinners] = useState<{ [key: string]: string | null }>({});
-  // --- ESTADOS PARA ELIMINAR TODAS LAS PARTIDAS ---
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -57,32 +102,41 @@ const AdministrarGrupoJuego = () => {
       const data: ApiResponse = await response.json();
       
       if (!data.rondas || Object.keys(data.rondas).length === 0) {
-        setInfoJuego({
-            juego: data.details.juego, 
-            grupo: data.details.grupo, 
-            total: 0,
-            rondas: 0
-        });
+        setInfoJuego({ juego: data.details.juego, grupo: data.details.grupo, total: 0, rondas: 0 });
         setPartidas([]);
       } else {
         const todasLasPartidas: Partida[] = [];
         const rondasDisponibles: number[] = [];
+        const initialWinners: { [key: string]: string | null } = {};
 
         for (const rondaKey in data.rondas) {
             rondasDisponibles.push(parseInt(rondaKey.split('_')[1]));
             const partidasDeRonda = data.rondas[rondaKey];
-            const partidasTransformadas = partidasDeRonda.map(p => ({
-                id: p.id_partida,
-                ronda: p.ronda,
-                jugadores: [
+            const partidasTransformadas = partidasDeRonda.map(p => {
+                const jugadores = [
                     ...p.equiposX.map(j => ({ id: String(j.id_jugador), nombre: j.nombre, nombreAcompanante: j.nombreAcompanante, nivel: j.nivel })),
                     ...p.equiposY.map(j => ({ id: String(j.id_jugador), nombre: j.nombre, nombreAcompanante: j.nombreAcompanante, nivel: j.nivel }))
-                ]
-            }));
+                ];
+                
+                // --- LÓGICA PARA DETERMINAR GANADOR INICIAL ---
+                if (jugadores.length === 2) {
+                    const compositeKey = `ronda-${p.ronda}-partida-${p.id_partida}`;
+                    if (jugadores[0].nivel > jugadores[1].nivel) {
+                        initialWinners[compositeKey] = jugadores[0].id;
+                    } else if (jugadores[1].nivel > jugadores[0].nivel) {
+                        initialWinners[compositeKey] = jugadores[1].id;
+                    } else {
+                        initialWinners[compositeKey] = null; // Empate o sin definir
+                    }
+                }
+                
+                return { id: p.id_partida, ronda: p.ronda, jugadores };
+            });
             todasLasPartidas.push(...partidasTransformadas);
         }
 
         setPartidas(todasLasPartidas);
+        setWinners(initialWinners); // Establecer ganadores iniciales
         setAvailableRondas(rondasDisponibles.sort((a, b) => a - b));
         setInfoJuego({
             juego: data.details.juego, 
@@ -145,33 +199,22 @@ const AdministrarGrupoJuego = () => {
     }
   };
 
-  // --- FUNCIÓN PARA ELIMINAR TODAS LAS PARTIDAS DEL GRUPO ---
   const handleDeleteAllPartidas = async () => {
     setShowDeleteConfirm(false);
-    if (!idJuego || !idGrupo) {
-        alert("ID de Juego o Grupo no especificado.");
-        return;
-    }
+    if (!idJuego || !idGrupo) return alert("ID de Juego o Grupo no especificado.");
     setIsDeletingAll(true);
     try {
         const url = `https://api-e3mal3grqq-uc.a.run.app/api/partidas`;
         const response = await fetch(url, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id_juego: parseInt(idJuego),
-                id_grupo: parseInt(idGrupo)
-            })
+            body: JSON.stringify({ id_juego: parseInt(idJuego), id_grupo: parseInt(idGrupo) })
         });
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: `Error en la API: ${response.status}` }));
             throw new Error(errorData.message || 'Error desconocido al eliminar.');
         }
-
-        // Refrescar la lista de partidas, que ahora debería estar vacía.
         await fetchPartidas(idJuego, idGrupo);
-
     } catch (err) {
         alert(`No se pudieron eliminar las partidas: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     } finally {
@@ -180,10 +223,7 @@ const AdministrarGrupoJuego = () => {
   };
 
   const handleCreateRonda = async () => {
-    if (!numPartidas || !nivelPartida || !idJuego || !idGrupo) {
-        alert("Por favor, completa todos los campos para crear la ronda.");
-        return;
-    }
+    if (!numPartidas || !nivelPartida || !idJuego || !idGrupo) return alert("Por favor, completa todos los campos para crear la ronda.");
     setIsCreating(true);
     try {
         const url = `https://api-e3mal3grqq-uc.a.run.app/api/partidas`;
@@ -193,21 +233,14 @@ const AdministrarGrupoJuego = () => {
             num_partidas: parseInt(numPartidas),
             nivel_partida: parseInt(nivelPartida)
         };
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: `Error en la API: ${response.status}` }));
             throw new Error(errorData.message || 'Error desconocido al crear la ronda.');
         }
-        
         setNumPartidas('');
         setNivelPartida('');
         await fetchPartidas(idJuego, idGrupo);
-
     } catch (err) {
         alert(`No se pudo crear la ronda: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     } finally {
@@ -217,14 +250,13 @@ const AdministrarGrupoJuego = () => {
   
   const partidasFiltradas = partidas.filter(partida => {
     const cumpleRonda = rondaSeleccionada === 'todas' || partida.ronda === parseInt(rondaSeleccionada);
-    const cumpleNivel = filtroNivel === 'todos' || partida.jugadores.some(j => j.nivel === parseInt(filtroNivel));
     const cumpleBusqueda = busqueda.trim() === '' ||
       partida.id.toString().includes(busqueda.toLowerCase()) ||
       partida.jugadores.some(j =>
         j.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         j.nombreAcompanante.toLowerCase().includes(busqueda.toLowerCase())
       );
-    return cumpleRonda && cumpleNivel && cumpleBusqueda;
+    return cumpleRonda && cumpleBusqueda;
   });
 
   const limpiarBusqueda = () => setBusqueda('');
@@ -278,10 +310,20 @@ const AdministrarGrupoJuego = () => {
                 {partidasFiltradas.map((partida) => {
                   const compositeKey = `ronda-${partida.ronda}-partida-${partida.id}`;
                   const winnerId = winners[compositeKey];
+                  
+                  // --- FILTRADO DE JUGADORES A MOSTRAR ---
+                  const jugadoresAMostrar = mostrarSoloPerdedores 
+                    ? partida.jugadores.filter(j => winnerId && j.id !== winnerId) 
+                    : partida.jugadores;
+                  
+                  if (mostrarSoloPerdedores && jugadoresAMostrar.length === 0) {
+                      return null; // No mostrar la partida si el filtro de perdedores está activo y no hay un perdedor claro
+                  }
+
                   return (
                     <div key={compositeKey} style={{ border: `1px solid ${winnerId ? '#d1d5db' : '#10b981'}`, borderRadius: '8px', padding: '12px', background: winnerId ? '#f9fafb' : '#f8fffe', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'all 0.3s' }}>
                       <div style={{ color: winnerId ? '#6b7280' : '#dc2626', fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Ronda {partida.ronda} - Partida {partida.id} {winnerId && '(Ganador Seleccionado)'}</div>
-                      {partida.jugadores.map((jugador) => {
+                      {jugadoresAMostrar.map((jugador) => {
                         const isUpdating = updatingLevel === jugador.id;
                         const isLockedForThisPlayer = winnerId != null && winnerId !== jugador.id;
                         return (
@@ -323,14 +365,28 @@ const AdministrarGrupoJuego = () => {
               </div>
             </div>
 
+            {/* --- TARJETA DE FILTROS --- */}
             <div style={{ background: 'white', borderRadius: '8px', padding: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}>
-              <div style={{ background: '#6366f1', color: 'white', padding: '10px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><Layers size={16}/>Filtrar por Ronda</div>
+              <div style={{ background: '#6366f1', color: 'white', padding: '10px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><Eye size={16}/>Filtros de Vista</div>
+              {/* Filtro de Rondas */}
+              <div style={{ marginBottom: '16px'}}>
+                <label style={{display: 'block', color: '#374151', fontSize: '14px', fontWeight: '500', marginBottom: '8px'}}>Ronda</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     <button onClick={() => setRondaSeleccionada('todas')} style={{ padding: '10px', border: '1px solid', borderColor: rondaSeleccionada === 'todas' ? '#6366f1' : '#d1d5db', background: rondaSeleccionada === 'todas' ? '#eef2ff' : 'white', color: '#4338ca', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Todas</button>
                     {availableRondas.slice(0, 5).map(ronda => (
                         <button key={ronda} onClick={() => setRondaSeleccionada(String(ronda))} style={{ padding: '10px', border: '1px solid', borderColor: rondaSeleccionada === String(ronda) ? '#6366f1' : '#d1d5db', background: rondaSeleccionada === String(ronda) ? '#eef2ff' : 'white', color: '#4338ca', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Ronda {ronda}</button>
                     ))}
                 </div>
+              </div>
+              {/* Filtro de Perdedores */}
+              <div>
+                 <label style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#374151', fontSize: '14px', fontWeight: '500'}}>
+                    <span>Mostrar solo perdedores</span>
+                     <button role="switch" aria-checked={mostrarSoloPerdedores} onClick={() => setMostrarSoloPerdedores(!mostrarSoloPerdedores)} style={{ position: 'relative', display: 'inline-flex', height: '24px', width: '44px', flexShrink: 0, cursor: 'pointer', borderRadius: '9999px', border: '2px solid transparent', background: mostrarSoloPerdedores ? '#6366f1' : '#d1d5db', transition: 'background-color 0.2s ease-in-out' }}>
+                        <span style={{ display: 'inline-block', height: '20px', width: '20px', borderRadius: '9999px', background: 'white', transform: mostrarSoloPerdedores ? 'translateX(20px)' : 'translateX(0px)', transition: 'transform 0.2s ease-in-out', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}></span>
+                    </button>
+                 </label>
+              </div>
             </div>
 
             <div style={{ background: 'white', borderRadius: '8px', padding: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}>
@@ -351,32 +407,8 @@ const AdministrarGrupoJuego = () => {
               </div>
             </div>
 
-            {/* --- TARJETA DE ELIMINACIÓN GENERAL --- */}
-            <div style={{ background: 'white', borderRadius: '8px', padding: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)', border: '1px solid #f87171' }}>
-              <div style={{ color: '#dc2626', padding: '10px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: '600', marginBottom: '12px', background: '#fee2e2', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16}/>Zona de Peligro</div>
-              <p style={{fontSize: '13px', color: '#4b5563', margin: '0 0 12px 0'}}>Esta acción eliminará permanentemente todas las partidas y rondas del juego y grupo seleccionados.</p>
-              <button onClick={() => setShowDeleteConfirm(true)} disabled={isDeletingAll || partidas.length === 0} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: (isDeletingAll || partidas.length === 0) ? 'not-allowed' : 'pointer', opacity: (isDeletingAll || partidas.length === 0) ? 0.5 : 1, transition: 'background 0.2s', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                {isDeletingAll ? <><LoaderCircle size={16} className="animate-spin" /> Eliminando...</> : <><Trash2 size={16}/> Eliminar Todo</>}
-              </button>
-            </div>
         </aside>
       </main>
-
-      {/* --- MODAL PARA CONFIRMAR ELIMINACIÓN TOTAL --- */}
-      {showDeleteConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'white', padding: '24px', borderRadius: '8px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-            <h2 style={{marginTop: 0, color: '#1f2937'}}>¿Estás seguro?</h2>
-            <p style={{color: '#4b5563'}}>Estás a punto de eliminar <strong>todas las partidas y rondas</strong> del Juego {idJuego} / Grupo {idGrupo}. Esta acción no se puede deshacer.</p>
-            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px'}}>
-              <button onClick={() => setShowDeleteConfirm(false)} disabled={isDeletingAll} style={{padding: '10px 20px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: '500'}}>Cancelar</button>
-              <button onClick={handleDeleteAllPartidas} disabled={isDeletingAll} style={{padding: '10px 20px', borderRadius: '6px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {isDeletingAll ? <><LoaderCircle size={16} className="animate-spin"/> Eliminando...</> : 'Confirmar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

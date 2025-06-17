@@ -27,7 +27,7 @@ export const AppRoutes = () => {
       
       {/* Ruta para visualización de juegos */}
       <Route path="/data-juegos" element={<DataJuegos />} /> 
-      <Route path="/bracket" element={<BracketTiempoReal />} />
+      <Route path="/brackets" element={<BracketTiempoReal />} />
 
       {/* Ruta alternativa para visualización de juegos */}
       <Route path="/visualizacion-juegos" element={<DataJuegos />} />
