@@ -77,8 +77,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
   };
 
   const handleInsertar = (jugador: Jugador) => {
-    console.log('Redirigiendo a VisualizacionJuegos con jugador:', jugador);
-    navigate('/visualizacion-juegos', { 
+    navigate('/juegos-completos', { 
       state: { 
         jugador: jugador,
         from: 'search' 
@@ -88,13 +87,11 @@ const SearchPage: React.FC<SearchPageProps> = ({
 
   // ✅ FUNCIÓN PARA EL BOTÓN "EDITAR" QUE ACTÚA COMO "AGREGAR"
   const handleAgregarJugadorDesdeBoton = () => {
-    console.log('Abriendo modal para agregar nueva pareja desde botón editar');
     // Simular click en el botón flotante
     document.querySelector('.floating-add-button')?.dispatchEvent(new Event('click', { bubbles: true }));
   };
 
   const handleAgregarJugador = (jugador: any) => {
-    console.log('Nuevo jugador creado:', jugador);
     // Actualizar la búsqueda para incluir el nuevo jugador
     if (query.trim()) {
       debouncedSearch(query);
@@ -190,6 +187,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
                           <ButtonInsertar 
                             onInsertar={() => handleInsertar(jugador)}
                             disabled={loading}
+
                           />
                           {/* ✅ BOTÓN "EDITAR" QUE AHORA FUNCIONA COMO "AGREGAR JUGADOR" */}
                           <ButtonEditarJugador 

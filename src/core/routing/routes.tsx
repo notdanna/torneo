@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import SearchPage from '../../features/pages/SearchPage/SearchPage';
 import DataJuegos from '../../features/pages/DataJuegos/VisualizacionJuegos';
 import BracketTiempoReal from '../../features/pages/GrafoTorneo/BracketTiempoReal';
+import AdministrarGrupoJuego from '../../features/pages/admin/Admin';
+import LayoutJuegos from '../../features/pages/DataJuegos/LayoutJuegos';
 
 export const AppRoutes = () => {
   // Provide onSearch callback to satisfy required SearchPageProps
@@ -25,12 +27,16 @@ export const AppRoutes = () => {
       
       {/* Ruta para visualización de juegos */}
       <Route path="/data-juegos" element={<DataJuegos />} /> 
-
-      {/* Ruta para el bracket en tiempo real */}
       <Route path="/bracket" element={<BracketTiempoReal />} />
 
       {/* Ruta alternativa para visualización de juegos */}
       <Route path="/visualizacion-juegos" element={<DataJuegos />} />
+
+      {/* Ruta para administración de grupos */}
+      <Route path="/admin" element={<AdministrarGrupoJuego />} />
+      {/*Ruta para visualización de juegos */}
+      <Route path="/juegos-completos" element={<LayoutJuegos />} />
+
     </Routes>
   );
 };

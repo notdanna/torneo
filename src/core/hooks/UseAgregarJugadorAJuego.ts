@@ -26,15 +26,16 @@ export const JUEGOS_DISPONIBLES: JuegoLocal[] = [
   },
   {
     id: 3,
-    nombre: 'Beer Pong',
-    descripcion: 'Juego de beer pong',
-    icono: '🍺'
-  },
-  {
-    id: 4,
     nombre: 'Ruelas',
     descripcion: 'Juego de ruelas',
     icono: '🎯'
+  },
+  {
+    id: 4,
+    nombre: 'Beer Pong',
+    descripcion: 'Juego de beer pong',
+    icono: '🍺'
+
   }
 ];
 
@@ -73,10 +74,6 @@ export const useJuegosLocal = (): UseJuegosLocalReturn => {
   // ========== FUNCIONES DE SELECCIÓN DE JUEGOS ==========
   
   const seleccionarJuego = (idJuego: number) => {
-    console.log('🎯 Juego seleccionado (ID):', idJuego);
-    const juegoInfo = obtenerJuegoPorId(idJuego);
-    console.log('🎯 Juego seleccionado (Info):', juegoInfo);
-    
     setEstado(prev => ({
       ...prev,
       juegoSeleccionado: idJuego,
