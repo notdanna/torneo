@@ -6,16 +6,16 @@ export interface Torneo {
 // Modelo actualizado para soportar parejas
 // Cuando esten activos ya no pueden jugar, la busqueda se hace por activo: false
 export interface Jugador {
-    id_jugador: number;
+    id_jugador: string; // ✅ ID del documento de Firebase (siempre string)
     nombre: string;
-    nombreAcompanante: string;
+    nombreAcompanante?: string;
     empresa: string;
-    empresaAcompanante: string;
-    // foto: string;
+    empresaAcompanante?: string;
     nivel: number;
     activo: boolean;
-}
-
+    fechaCreacion?: string;
+    fechaActualizacion?: string;
+  }
 export interface Grupo {
     id_grupo: number;
     id_juego: number;
@@ -94,4 +94,20 @@ export interface JugadorJuegoData {
     message?: string;
     data?: any;
   }
-  
+  export const extraerIdJugador = (jugador: any): string | null => {
+    const posiblesIds = [
+      jugador.id_jugador,
+      jugador.id,
+      jugador._id,
+      jugador.jugadorId,
+      jugador.playerId
+    ];
+    
+    for (const id of posiblesIds) {
+      if (id !== undefined && id !== null && id !== '') {
+        return id.toString();
+      }
+    }
+    
+    return null;
+  };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { actualizarJugador, type JugadorFirebase } from '../../../../core/api/Services/jugadorService.ts';
+import { actualizarJugador, crearJugador, type JugadorFirebase } from '../../../../core/api/Services/jugadorService.ts';
 
 // ✅ Tipos compartidos con el hook useJugadorForm (se replican aquí para evitar dependencias circulares)
 interface DatosJugador {
@@ -122,6 +122,11 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
     try {
       if (modoEdicion && jugadorParaEditar?.id) {
         // ✅ MODO EDICIÓN: Actualizar la pareja existente en Firebase
+        console.log('📝 Actualizando pareja en Firebase:', {
+          id: jugadorParaEditar.id,
+          datos: formData
+        });
+        
         await actualizarJugador(jugadorParaEditar.id, formData);
         
         setSuccess('✅ ¡Pareja actualizada exitosamente en Firebase!');
@@ -147,26 +152,34 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
         }
         
       } else {
-        // ✅ MODO CREACIÓN: Crear nueva pareja
-        console.log('➕ Crear nueva pareja:', formData);
+        // ✅ MODO CREACIÓN: Crear nueva pareja EN FIREBASE
+        console.log('➕ Creando nueva pareja en Firebase:', formData);
         
-        // Aquí llamarías a tu función de crear jugador
-        // const nuevaPareja = await crearJugador(formData);
-        // onJugadorAgregado(nuevaPareja);
+        // ✅ LLAMAR A LA FUNCIÓN REAL DE CREACIÓN
+        const nuevaPareja = await crearJugador(formData);
         
-        // Por ahora simular la creación
+        console.log('✅ Nueva pareja creada exitosamente:', {
+          pareja: `${formData.nombre}${formData.nombreAcompanante ? ` y ${formData.nombreAcompanante}` : ''}`,
+          datos: nuevaPareja
+        });
+        
         setSuccess('✅ ¡Nueva pareja creada exitosamente!');
+        
         if (onJugadorAgregado) {
           setTimeout(() => {
-            onJugadorAgregado(formData);
+            onJugadorAgregado(nuevaPareja);
           }, 1500);
         }
       }
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al procesar la solicitud';
-      setError(errorMessage);
-      console.error('❌ Error:', err);
+      setError(`❌ ${errorMessage}`);
+      console.error('❌ Error al guardar:', {
+        error: err,
+        modo: modoEdicion ? 'edición' : 'creación',
+        datos: formData
+      });
     } finally {
       setLoading(false);
     }
@@ -196,7 +209,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
       {/* Mensajes */}
       {error && (
         <div className="error-message">
-          ❌ {error}
+          {error}
         </div>
       )}
 
@@ -302,7 +315,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
             <option value={10}>10 - Experto</option>
           </select>
           <small className="form-help">
-            Nivel actual: <strong>{formData.nivel} - {getNivelTexto(formData.nivel)}</strong>
+            Nivel actual: <strong>{(esControlado ? datos!.nivel : formData.nivel)} - {getNivelTexto(esControlado ? datos!.nivel : formData.nivel)}</strong>
           </small>
         </div>
 

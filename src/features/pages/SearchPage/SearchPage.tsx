@@ -92,26 +92,22 @@ const SearchPage: React.FC<SearchPageProps> = ({
 
   // ✅ NUEVA FUNCIÓN PARA RECUPERAR DATOS DEL JUGADOR POR ID Y EDITARLO
   const handleEditarJugador = async (jugador: Jugador) => {
-    // ✅ FIX: Convertir id_jugador a string y validar
-    const jugadorId = jugador.id_jugador?.toString();
+    const jugadorId = jugador.id_jugador;
     
     if (!jugadorId) {
       setError('ID del jugador no válido');
       return;
     }
-
+  
     setLoadingEdit(jugadorId);
     setError(null);
     
     try {
-      // Recuperar datos completos del jugador desde Firebase
       const jugadorCompleto = await obtenerJugadorPorId(jugadorId);
       
       if (jugadorCompleto) {
         setJugadorSeleccionado(jugadorCompleto);
-        setMostrarFormularioEdicion(true); // ✅ Mostrar el formulario de edición
-        console.log('Jugador recuperado para editar:', jugadorCompleto);
-        
+        setMostrarFormularioEdicion(true);
       } else {
         setError(`No se encontró el jugador con ID: ${jugadorId}`);
       }
@@ -123,7 +119,6 @@ const SearchPage: React.FC<SearchPageProps> = ({
       setLoadingEdit(null);
     }
   };
-
   const handleAgregarJugador = ( ) => {
     // Actualizar la búsqueda para incluir el nuevo jugador
     if (query.trim()) {
