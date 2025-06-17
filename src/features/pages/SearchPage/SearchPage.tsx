@@ -1,13 +1,13 @@
 import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
-import { buscarJugadoresPorNombreParcial } from '../../../core/api/BusquedaJugador.ts';
+import { buscarJugadoresPorNombreParcial } from '../../../core/api/Services/BusquedaJugador.ts';
 import ButtonInsertar from '../../../core/components/Buttons/ButtonInsertar.tsx';
 import ButtonEditarJugador from '../../../core/components/Buttons/ButtonEditarJugador.tsx';
 import ButtonAgregarJugador from './AgregarJugador/AgregarJugador.tsx';
 import FormularioJugador from '../../../../src/features/pages/SearchPage/AgregarJugador/FormularioJugador'; 
 import type { Jugador } from '../../../core/models/torneo.ts';
-import { obtenerJugadorPorId, JugadorFirebase } from '../../../core/components/Services/jugadorService.ts';
+import { obtenerJugadorPorId, JugadorFirebase } from '../../../core/api/Services/jugadorService.ts';
 import './SearchPage.css';
 import './Modal.css';
 interface SearchPageProps {
@@ -124,7 +124,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
     }
   };
 
-  const handleAgregarJugador = (jugador: any) => {
+  const handleAgregarJugador = ( ) => {
     // Actualizar la búsqueda para incluir el nuevo jugador
     if (query.trim()) {
       debouncedSearch(query);

@@ -1,12 +1,35 @@
 import { useState, useEffect } from 'react';
-import { actualizarJugador, type JugadorFirebase } from '../../../../core/components/Services/jugadorService.ts';
+import { actualizarJugador, type JugadorFirebase } from '../../../../core/api/Services/jugadorService.ts';
+
+// ✅ Tipos compartidos con el hook useJugadorForm (se replican aquí para evitar dependencias circulares)
+interface DatosJugador {
+  nombre: string;
+  nombreAcompanante: string;
+  empresa: string;
+  empresaAcompanante: string;
+  nivel: number;
+}
+
+interface ErroresJugador {
+  nombre?: string;
+  nombreAcompanante?: string;
+  empresa?: string;
+  empresaAcompanante?: string;
+  nivel?: string;
+}
 
 interface FormularioJugadorProps {
-  onJugadorAgregado: (jugador: any) => void;
+  // --- Props existentes (modo edición desde SearchPage) ---
   onCancelar: () => void;
   nombreInicial?: string;
   jugadorParaEditar?: JugadorFirebase | null;
   modoEdicion?: boolean;
+
+  datos?: DatosJugador;
+  errores?: ErroresJugador;
+  onActualizarDatos?: (campo: keyof DatosJugador, valor: string | number | boolean) => void;
+  onContinuar?: () => void;
+  onJugadorAgregado?: (jugador: any) => void;
 }
 
 const FormularioJugador: React.FC<FormularioJugadorProps> = ({
@@ -14,9 +37,17 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
   onCancelar,
   nombreInicial = '',
   jugadorParaEditar = null,
-  modoEdicion = false
+  modoEdicion = false,
+  datos,
+  errores,
+  onActualizarDatos,
+  onContinuar
 }) => {
-  // ✅ Estados del formulario con datos específicos para parejas
+  // Determinar si estamos en modo controlado (recibimos "datos" y "onActualizarDatos")
+  const esControlado = !!datos && !!onActualizarDatos;
+
+  // ✅ Estados del formulario con datos específicos para parejas (no se usan en modo controlado)
+  //    Se mantienen para conservar compatibilidad con modo edición existente.
   const [formData, setFormData] = useState({
     nombre: '',
     nombreAcompanante: '',
@@ -59,6 +90,12 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+
+    if (esControlado && onActualizarDatos) {
+      // Delegar la actualización al padre
+      onActualizarDatos(name as keyof DatosJugador, type === 'number' ? Number(value) : type === 'checkbox' ? (e.target as HTMLInputElement).checked : value);
+      return;
+    }
     
     setFormData(prev => ({
       ...prev,
@@ -71,6 +108,12 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // Si estamos en modo controlado, delegar la acción al padre mediante onContinuar
+    if (onContinuar) {
+      e.preventDefault();
+      onContinuar();
+      return;
+    }
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -97,9 +140,11 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
         });
         
         // Cerrar formulario después de 1.5 segundos
-        setTimeout(() => {
-          onJugadorAgregado(parejaActualizada);
-        }, 1500);
+        if (onJugadorAgregado) {
+          setTimeout(() => {
+            onJugadorAgregado(parejaActualizada);
+          }, 1500);
+        }
         
       } else {
         // ✅ MODO CREACIÓN: Crear nueva pareja
@@ -111,9 +156,11 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
         
         // Por ahora simular la creación
         setSuccess('✅ ¡Nueva pareja creada exitosamente!');
-        setTimeout(() => {
-          onJugadorAgregado(formData);
-        }, 1500);
+        if (onJugadorAgregado) {
+          setTimeout(() => {
+            onJugadorAgregado(formData);
+          }, 1500);
+        }
       }
       
     } catch (err) {
@@ -169,7 +216,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
             id="nombre"
             name="nombre"
             type="text"
-            value={formData.nombre}
+            value={esControlado ? datos!.nombre : formData.nombre}
             onChange={handleInputChange}
             required
             placeholder="Ej: Ana García"
@@ -184,7 +231,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
             id="empresa"
             name="empresa"
             type="text"
-            value={formData.empresa}
+            value={esControlado ? datos!.empresa : formData.empresa}
             onChange={handleInputChange}
             required
             placeholder="Ej: Empresa ABC"
@@ -204,7 +251,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
             id="nombreAcompanante"
             name="nombreAcompanante"
             type="text"
-            value={formData.nombreAcompanante}
+            value={esControlado ? datos!.nombreAcompanante : formData.nombreAcompanante}
             onChange={handleInputChange}
             placeholder="Ej: Francisco López"
             className="form-input"
@@ -218,7 +265,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
             id="empresaAcompanante"
             name="empresaAcompanante"
             type="text"
-            value={formData.empresaAcompanante}
+            value={esControlado ? datos!.empresaAcompanante : formData.empresaAcompanante}
             onChange={handleInputChange}
             placeholder="Ej: Empresa XYZ"
             className="form-input"
@@ -236,7 +283,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
           <select
             id="nivel"
             name="nivel"
-            value={formData.nivel}
+            value={esControlado ? datos!.nivel : formData.nivel}
             onChange={handleInputChange}
             required
             className="form-select"
@@ -264,7 +311,7 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
             <input
               type="checkbox"
               name="activo"
-              checked={formData.activo}
+              checked={esControlado ? true : formData.activo}
               onChange={handleInputChange}
               className="form-checkbox"
               disabled={loading}
@@ -276,6 +323,15 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = ({
           </label>
         </div>
       </div>
+
+      {/* Mostrar errores en modo controlado */}
+      {errores && Object.values(errores).some(Boolean) && (
+        <div className="error-message">
+          {Object.entries(errores).map(([campo, mensaje]) => (
+            mensaje ? <p key={campo}>❌ {mensaje}</p> : null
+          ))}
+        </div>
+      )}
 
       {/* ===== BOTONES DE ACCIÓN ===== */}
       <div className="form-actions">

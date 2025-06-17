@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../firabase.ts';
+import { db } from '../../../../src/firebase';
 import { User, Building2, Activity, Clock, AlertCircle, Loader2 } from 'lucide-react';
 
 interface JugadorData {

@@ -75,9 +75,6 @@ const VisualizacionJuegos = () => {
   }), [gruposDisponibles, jugador?.id_jugador, juegoSeleccionado]);
 
   const {
-    jugadorId: jugadorIdGrupo,
-    grupoId,
-    juegoId: juegoIdGrupo,
     data: dataGrupo,
     loading: loadingGrupo,
     error: errorGrupo,
@@ -86,7 +83,6 @@ const VisualizacionJuegos = () => {
     setJuegoId: setJuegoIdGrupo,
     ejecutarAgregar,
     reset: resetSelectorGrupo,
-    esValido,
   } = useSelectorGrupo(selectorGrupoConfig);
 
   // Simular carga de grupos disponibles (reemplaza con tu API real)

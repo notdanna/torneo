@@ -1,4 +1,4 @@
-import type { ApiResponse } from '../models/torneo';
+import type { ApiResponse } from '../../models/torneo';
 
 const API_BASE_URL = 'https://api-e3mal3grqq-uc.a.run.app/api';
 

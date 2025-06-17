@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../firabase';
+import { db } from '../../../../src/firebase';
 import * as d3 from 'd3';
 
 interface Jugador {
