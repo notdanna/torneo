@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { agregarJugadorAGrupo, agregarJugadorAGrupoConParams } from '../api/agregarGrupo';
+import { agregarJugadorAGrupo, agregarJugadorAGrupoConParams } from '../api/Services/agregarGrupo';
 import type { AgregarGrupoRequest, AgregarGrupoResponse } from '../models/torneo';
 
 interface UseAgregarGrupoState {

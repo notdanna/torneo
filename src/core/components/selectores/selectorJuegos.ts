@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { agregarJugadorAJuego, validarJugadorJuego } from '../../api/agregarJuego';
+import { agregarJugadorAJuego, validarJugadorJuego } from '../../api/Services/agregarJuego';
 import type { ApiResponse } from '../../models/torneo';
 
 // Definición de juegos locales con sus IDs correspondientes a la base de datos

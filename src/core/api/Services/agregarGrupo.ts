@@ -1,4 +1,4 @@
-import type {AgregarGrupoRequest, AgregarGrupoResponse} from '../models/torneo';
+import type {AgregarGrupoRequest, AgregarGrupoResponse} from '../../models/torneo';
   /**
    * Agrega un jugador a un grupo específico
    * @param jugadorId ID del jugador

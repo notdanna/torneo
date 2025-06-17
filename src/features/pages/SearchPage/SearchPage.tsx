@@ -1,13 +1,15 @@
 import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './SearchPage.css';
 import { useState, useEffect, useCallback } from 'react';
-import { buscarJugadoresPorNombreParcial } from '../../../core/api/BusquedaJugador.ts';
+import { buscarJugadoresPorNombreParcial } from '../../../core/api/Services/BusquedaJugador.ts';
 import ButtonInsertar from '../../../core/components/Buttons/ButtonInsertar.tsx';
 import ButtonEditarJugador from '../../../core/components/Buttons/ButtonEditarJugador.tsx';
 import ButtonAgregarJugador from './AgregarJugador/AgregarJugador.tsx';
+import FormularioJugador from '../../../../src/features/pages/SearchPage/AgregarJugador/FormularioJugador'; 
 import type { Jugador } from '../../../core/models/torneo.ts';
-
+import { obtenerJugadorPorId, JugadorFirebase } from '../../../core/api/Services/jugadorService.ts';
+import './SearchPage.css';
+import './Modal.css';
 interface SearchPageProps {
   onSearch?: (query: string) => void;
   placeholder?: string;
@@ -22,6 +24,9 @@ const SearchPage: React.FC<SearchPageProps> = ({
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jugadorSeleccionado, setJugadorSeleccionado] = useState<JugadorFirebase | null>(null);
+  const [loadingEdit, setLoadingEdit] = useState<string | null>(null); // Para manejar loading por jugador específico
+  const [mostrarFormularioEdicion, setMostrarFormularioEdicion] = useState(false); // ✅ Estado para mostrar formulario
 
   // Función debounced para búsqueda
   const debouncedSearch = useCallback(
@@ -85,17 +90,54 @@ const SearchPage: React.FC<SearchPageProps> = ({
     });
   };
 
-  // ✅ FUNCIÓN PARA EL BOTÓN "EDITAR" QUE ACTÚA COMO "AGREGAR"
-  const handleAgregarJugadorDesdeBoton = () => {
-    // Simular click en el botón flotante
-    document.querySelector('.floating-add-button')?.dispatchEvent(new Event('click', { bubbles: true }));
+  // ✅ NUEVA FUNCIÓN PARA RECUPERAR DATOS DEL JUGADOR POR ID Y EDITARLO
+  const handleEditarJugador = async (jugador: Jugador) => {
+    // ✅ FIX: Convertir id_jugador a string y validar
+    const jugadorId = jugador.id_jugador?.toString();
+    
+    if (!jugadorId) {
+      setError('ID del jugador no válido');
+      return;
+    }
+
+    setLoadingEdit(jugadorId);
+    setError(null);
+    
+    try {
+      // Recuperar datos completos del jugador desde Firebase
+      const jugadorCompleto = await obtenerJugadorPorId(jugadorId);
+      
+      if (jugadorCompleto) {
+        setJugadorSeleccionado(jugadorCompleto);
+        setMostrarFormularioEdicion(true); // ✅ Mostrar el formulario de edición
+        console.log('Jugador recuperado para editar:', jugadorCompleto);
+        
+      } else {
+        setError(`No se encontró el jugador con ID: ${jugadorId}`);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al recuperar datos del jugador';
+      setError(errorMessage);
+      console.error('Error recuperando jugador para editar:', err);
+    } finally {
+      setLoadingEdit(null);
+    }
   };
 
-  const handleAgregarJugador = (jugador: any) => {
+  const handleAgregarJugador = ( ) => {
     // Actualizar la búsqueda para incluir el nuevo jugador
     if (query.trim()) {
       debouncedSearch(query);
     }
+    // ✅ Limpiar estados de edición después de agregar/editar
+    setJugadorSeleccionado(null);
+    setMostrarFormularioEdicion(false);
+  };
+
+  // ✅ Función para cerrar el formulario de edición
+  const handleCerrarFormularioEdicion = () => {
+    setMostrarFormularioEdicion(false);
+    setJugadorSeleccionado(null);
   };
 
   return (
@@ -154,49 +196,55 @@ const SearchPage: React.FC<SearchPageProps> = ({
                     ✅ Se encontraron {jugadores.length} pareja(s):
                   </h2>
                   <div className="jugadores-list">
-                    {jugadores.map((jugador, index) => (
-                      <div key={`${jugador.id_jugador}-${index}`} className="jugador-card">
-                        <div className="jugador-info">
-                          {/* NOMBRE DE LA PAREJA - SIN HIGHLIGHT */}
-                          <div className="pareja-nombres">
-                            <h3 className="jugador-nombre-principal">
-                              👤 {jugador.nombre}
-                            </h3>
-                            <h3 className="jugador-nombre-acompanante">
-                              👥 {jugador.nombreAcompanante || 'Sin acompañante'}
-                            </h3>
-                          </div>
-                          
-                          {/* DETALLES DE LA PAREJA */}
-                          <div className="jugador-details">
-                            <div className="empresas-info">
-                              <p><strong>Empresa Principal:</strong> {jugador.empresa}</p>
-                              {jugador.empresaAcompanante && (
-                                <p><strong>Empresa Acompañante:</strong> {jugador.empresaAcompanante}</p>
-                              )}
+                    {jugadores.map((jugador, index) => {
+                      // ✅ FIX: Convertir id_jugador a string para comparaciones
+                      const jugadorIdStr = jugador.id_jugador?.toString();
+                      const isLoadingThis = loadingEdit === jugadorIdStr;
+                      
+                      return (
+                        <div key={`${jugadorIdStr}-${index}`} className="jugador-card">
+                          <div className="jugador-info">
+                            {/* NOMBRE DE LA PAREJA - SIN HIGHLIGHT */}
+                            <div className="pareja-nombres">
+                              <h3 className="jugador-nombre-principal">
+                                👤 {jugador.nombre}
+                              </h3>
+                              <h3 className="jugador-nombre-acompanante">
+                                👥 {jugador.nombreAcompanante || 'Sin acompañante'}
+                              </h3>
                             </div>
                             
-                            <div className="nivel-info">
-                              <p><strong>Nivel:</strong> {jugador.nivel} - {getNivelTexto(jugador.nivel)}</p>
-                              <p><strong>Estado:</strong> {jugador.activo ? '🟢 Activo' : '🔴 Inactivo'}</p>
+                            {/* DETALLES DE LA PAREJA */}
+                            <div className="jugador-details">
+                              <div className="empresas-info">
+                                <p><strong>Empresa Principal:</strong> {jugador.empresa}</p>
+                                {jugador.empresaAcompanante && (
+                                  <p><strong>Empresa Acompañante:</strong> {jugador.empresaAcompanante}</p>
+                                )}
+                              </div>
+                              
+                              <div className="nivel-info">
+                                <p><strong>Nivel:</strong> {jugador.nivel} - {getNivelTexto(jugador.nivel)}</p>
+                                <p><strong>Estado:</strong> {jugador.activo ? '🟢 Activo' : '🔴 Inactivo'}</p>
+                              </div>
                             </div>
                           </div>
+                          
+                          <div className="jugador-actions">
+                            <ButtonInsertar 
+                              onInsertar={() => handleInsertar(jugador)}
+                              disabled={loading || isLoadingThis}
+                            />
+                            {/* ✅ BOTÓN "EDITAR" QUE AHORA RECUPERA DATOS DE FIREBASE */}
+                            <ButtonEditarJugador 
+                              onEditar={() => handleEditarJugador(jugador)}
+                              disabled={loading || isLoadingThis}
+                              loading={isLoadingThis}
+                            />
+                          </div>
                         </div>
-                        
-                        <div className="jugador-actions">
-                          <ButtonInsertar 
-                            onInsertar={() => handleInsertar(jugador)}
-                            disabled={loading}
-
-                          />
-                          {/* ✅ BOTÓN "EDITAR" QUE AHORA FUNCIONA COMO "AGREGAR JUGADOR" */}
-                          <ButtonEditarJugador 
-                            onEditar={handleAgregarJugadorDesdeBoton}
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )
@@ -204,6 +252,35 @@ const SearchPage: React.FC<SearchPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* ✅ MODAL DE FORMULARIO DE EDICIÓN */}
+      {mostrarFormularioEdicion && jugadorSeleccionado && (
+        <div className="modal-overlay" onClick={handleCerrarFormularioEdicion}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">
+                ✏️ Editar Pareja: {jugadorSeleccionado.nombre} {jugadorSeleccionado.nombreAcompanante ? `y ${jugadorSeleccionado.nombreAcompanante}` : ''}
+              </h2>
+              <button
+                onClick={handleCerrarFormularioEdicion}
+                className="modal-close-button"
+                aria-label="Cerrar formulario de edición"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <FormularioJugador
+                onJugadorAgregado={handleAgregarJugador}
+                onCancelar={handleCerrarFormularioEdicion}
+                jugadorParaEditar={jugadorSeleccionado}
+                modoEdicion={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Botón flotante siempre visible */}
       <ButtonAgregarJugador 

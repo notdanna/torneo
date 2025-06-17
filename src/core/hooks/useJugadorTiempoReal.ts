@@ -1,7 +1,7 @@
 // src/core/hooks/useJugadorTiempoReal.ts
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firabase';
+import { db } from '../../../src/firebase';
 
 interface JugadorData {
   id_jugador?: number;

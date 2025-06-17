@@ -107,12 +107,12 @@ export const useJugadorForm = (nombreInicial: string = '') => {
     return esValido;
   };
 
-  const actualizarDatos = (campo: keyof DatosJugador, valor: string | number) => {
+  const actualizarDatos = (campo: keyof DatosJugador, valor: string | number | boolean) => {
     console.log(`📝 Actualizando ${campo}:`, valor);
     
     setDatos(prev => ({ 
       ...prev, 
-      [campo]: campo === 'nivel' ? Number(valor) : valor 
+      [campo]: campo === 'nivel' ? Number(valor) : (valor as unknown as string | number) 
     }));
     
     // Limpiar error del campo cuando se modifica

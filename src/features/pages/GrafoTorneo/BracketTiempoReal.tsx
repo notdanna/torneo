@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, DocumentData, DocumentSnapshot } from 'firebase/firestore';
-import { db } from '../../../firabase'; // Ajusta esta ruta según donde esté tu archivo firebase
+//import { db } from '../../../firabase'; // Ajusta esta ruta según donde esté tu archivo firebase
+import { db } from '../../../../src/firebase';
 import * as d3 from 'd3';
 
 interface Jugador {

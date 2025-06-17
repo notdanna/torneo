@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { FormularioJugador } from '../../../../src/features/pages/SearchPage/AgregarJugador/FormularioJugador';
+import  FormularioJugador  from '../../../../src/features/pages/SearchPage/AgregarJugador/FormularioJugador';
 import { ConfirmacionJugador } from '../../../../src/features/pages/SearchPage/AgregarJugador/ConfirmacionJugador';
 import { useJugadorForm } from '../../../../src/core/hooks/useJugadorForm';
 import './AgregarJugador.css';
