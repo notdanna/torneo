@@ -1,6 +1,5 @@
-// C:\Users\golom\Desktop\torneo\src\core\components\selectores\selectorGrupo.ts
-
-import { useAgregarGrupo } from '../../hooks/usaAgregarGrupo';
+import { useState, useCallback, useEffect } from 'react';
+import { useAgregarGrupo } from '../../hooks/useAgregarGrupo';
 import type { AgregarGrupoRequest, AgregarGrupoResponse } from '../../models/torneo';
 
 // Interfaces para el selector
@@ -53,142 +52,76 @@ export interface SelectorGrupoActions {
 }
 
 /**
- * Clase para manejar la lógica del selector de grupo
- */
-export class SelectorGrupo {
-  private jugadorId: number = 0;
-  private grupoId: number = 0;
-  private juegoId: number = 0;
-  private config: SelectorGrupoConfig;
-
-  constructor(config: SelectorGrupoConfig = {}) {
-    this.config = config;
-    this.jugadorId = config.jugadorSeleccionado || 0;
-    this.grupoId = config.grupoSeleccionado || 0;
-    this.juegoId = config.juegoSeleccionado || 0;
-  }
-
-  // Getters
-  getJugadorId(): number {
-    return this.jugadorId;
-  }
-
-  getGrupoId(): number {
-    return this.grupoId;
-  }
-
-  getJuegoId(): number {
-    return this.juegoId;
-  }
-
-  getEstado(): SelectorGrupoState {
-    return {
-      jugadorId: this.jugadorId,
-      grupoId: this.grupoId,
-      juegoId: this.juegoId,
-      loading: false, // Se actualizará con el hook
-      error: null,    // Se actualizará con el hook
-      data: null      // Se actualizará con el hook
-    };
-  }
-
-  // Setters
-  setJugadorId(id: number): void {
-    this.jugadorId = id;
-  }
-
-  setGrupoId(id: number): void {
-    this.grupoId = id;
-  }
-
-  setJuegoId(id: number): void {
-    this.juegoId = id;
-  }
-
-  // Validaciones
-  esValido(): boolean {
-    return this.jugadorId > 0 && this.grupoId > 0 && this.juegoId > 0;
-  }
-
-  validarJugador(jugadorId: number): boolean {
-    if (!this.config.jugadores) return true;
-    const jugador = this.config.jugadores.find(j => j.id === jugadorId);
-    return jugador ? jugador.activo !== false : false;
-  }
-
-  validarGrupo(grupoId: number): boolean {
-    if (!this.config.grupos) return true;
-    const grupo = this.config.grupos.find(g => g.id === grupoId);
-    return grupo ? grupo.activo !== false : false;
-  }
-
-  validarJuego(juegoId: number): boolean {
-    if (!this.config.juegos) return true;
-    const juego = this.config.juegos.find(j => j.id === juegoId);
-    return juego ? juego.activo !== false : false;
-  }
-
-  // Métodos utilitarios
-  obtenerJugadorPorId(id: number): Jugador | undefined {
-    return this.config.jugadores?.find(j => j.id === id);
-  }
-
-  obtenerGrupoPorId(id: number): Grupo | undefined {
-    return this.config.grupos?.find(g => g.id === id);
-  }
-
-  obtenerJuegoPorId(id: number): Juego | undefined {
-    return this.config.juegos?.find(j => j.id === id);
-  }
-
-  // Configuración
-  actualizarConfig(nuevaConfig: Partial<SelectorGrupoConfig>): void {
-    this.config = { ...this.config, ...nuevaConfig };
-  }
-
-  reset(): void {
-    this.jugadorId = 0;
-    this.grupoId = 0;
-    this.juegoId = 0;
-  }
-
-  // Crear parámetros para la API
-  crearParametros(): AgregarGrupoRequest {
-    return {
-      jugadorId: this.jugadorId,
-      grupoId: this.grupoId,
-      juegoId: this.juegoId
-    };
-  }
-}
-
-/**
  * Hook personalizado para usar el selector de grupo
  */
 export const useSelectorGrupo = (config: SelectorGrupoConfig = {}) => {
   const { data, loading, error, agregarJugador, reset } = useAgregarGrupo();
-  const selector = new SelectorGrupo(config);
+  
+  // Estados locales para los IDs
+  const [jugadorId, setJugadorId] = useState(config.jugadorSeleccionado || 0);
+  const [grupoId, setGrupoId] = useState(config.grupoSeleccionado || 0);
+  const [juegoId, setJuegoId] = useState(config.juegoSeleccionado || 0);
 
-  const ejecutarAgregar = async (): Promise<void> => {
-    if (selector.esValido()) {
-      const params = selector.crearParametros();
-      await agregarJugador(params.jugadorId, params.grupoId, params.juegoId);
+  const esValido = useCallback(() => {
+    return jugadorId > 0 && grupoId > 0 && juegoId > 0;
+  }, [jugadorId, grupoId, juegoId]);
+
+  const ejecutarAgregar = useCallback(async (): Promise<void> => {
+    if (!esValido()) {
+      const errorMsg = 'Faltan datos requeridos: jugadorId, grupoId o juegoId';
+      console.error(errorMsg);
+      if (config.onError) {
+        config.onError(errorMsg);
+      }
+      return;
+    }
+
+    try {
+      console.log('Ejecutando agregar con:', { jugadorId, grupoId, juegoId });
+      await agregarJugador(jugadorId, grupoId, juegoId);
       
-      // Ejecutar callbacks
-      if (data && config.onSuccess) {
+      // La respuesta exitosa se maneja en el siguiente render cuando 'data' se actualiza
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      console.error('Error en ejecutarAgregar:', errorMessage);
+      if (config.onError) {
+        config.onError(errorMessage);
+      }
+    }
+  }, [jugadorId, grupoId, juegoId, esValido, agregarJugador, config]);
+
+  // Efecto para manejar el éxito cuando data cambia
+  useEffect(() => {
+    if (data && !loading && !error) {
+      console.log('Operación exitosa, data recibida:', data);
+      if (config.onSuccess) {
         config.onSuccess(data);
       }
-      if (error && config.onError) {
+    }
+  }, [data, loading, error, config]);
+
+  // Efecto para manejar errores cuando error cambia
+  useEffect(() => {
+    if (error && !loading) {
+      console.error('Error detectado:', error);
+      if (config.onError) {
         config.onError(error);
       }
     }
-  };
+  }, [error, loading, config]);
+
+  const resetAll = useCallback(() => {
+    setJugadorId(0);
+    setGrupoId(0);
+    setJuegoId(0);
+    reset();
+  }, [reset]);
 
   return {
     // Estado del selector
-    jugadorId: selector.getJugadorId(),
-    grupoId: selector.getGrupoId(),
-    juegoId: selector.getJuegoId(),
+    jugadorId,
+    grupoId,
+    juegoId,
     
     // Estado de la API
     data,
@@ -196,26 +129,14 @@ export const useSelectorGrupo = (config: SelectorGrupoConfig = {}) => {
     error,
     
     // Acciones
-    setJugadorId: (id: number) => selector.setJugadorId(id),
-    setGrupoId: (id: number) => selector.setGrupoId(id),
-    setJuegoId: (id: number) => selector.setJuegoId(id),
+    setJugadorId,
+    setGrupoId,
+    setJuegoId,
     ejecutarAgregar,
-    reset: () => {
-      selector.reset();
-      reset();
-    },
+    reset: resetAll,
     
     // Validaciones
-    esValido: () => selector.esValido(),
-    validarJugador: (id: number) => selector.validarJugador(id),
-    validarGrupo: (id: number) => selector.validarGrupo(id),
-    validarJuego: (id: number) => selector.validarJuego(id),
-    
-    // Utilidades
-    obtenerJugadorPorId: (id: number) => selector.obtenerJugadorPorId(id),
-    obtenerGrupoPorId: (id: number) => selector.obtenerGrupoPorId(id),
-    obtenerJuegoPorId: (id: number) => selector.obtenerJuegoPorId(id),
-    crearParametros: () => selector.crearParametros(),
+    esValido,
   };
 };
 
@@ -267,7 +188,6 @@ export const filtrarActivos = <T extends { activo?: boolean }>(lista: T[]): T[] 
 
 // Exportación por defecto
 export default {
-  SelectorGrupo,
   useSelectorGrupo,
   crearParametrosGrupo,
   validarConfiguracionSelector,

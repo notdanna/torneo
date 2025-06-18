@@ -91,34 +91,35 @@ const SearchPage: React.FC<SearchPageProps> = ({
   };
 
   // ✅ NUEVA FUNCIÓN PARA RECUPERAR DATOS DEL JUGADOR POR ID Y EDITARLO
-  const handleEditarJugador = async (jugador: Jugador) => {
-    const jugadorId = jugador.id_jugador;
-    
-    if (!jugadorId) {
+const handleEditarJugador = async (jugador: Jugador) => {
+  const jugadorIdStr = jugador.id_jugador;
+    const jugadorId = Number(jugadorIdStr);
+  
+  if (!jugadorIdStr || isNaN(jugadorId)) {
       setError('ID del jugador no válido');
       return;
     }
+
+  setLoadingEdit(jugadorIdStr);
+  setError(null);
   
-    setLoadingEdit(jugadorId);
-    setError(null);
+  try {
+    const jugadorCompleto = await obtenerJugadorPorId(jugadorId);
     
-    try {
-      const jugadorCompleto = await obtenerJugadorPorId(jugadorId);
-      
-      if (jugadorCompleto) {
-        setJugadorSeleccionado(jugadorCompleto);
-        setMostrarFormularioEdicion(true);
-      } else {
-        setError(`No se encontró el jugador con ID: ${jugadorId}`);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al recuperar datos del jugador';
-      setError(errorMessage);
-      console.error('Error recuperando jugador para editar:', err);
-    } finally {
-      setLoadingEdit(null);
+    if (jugadorCompleto) {
+      setJugadorSeleccionado(jugadorCompleto);
+      setMostrarFormularioEdicion(true);
+    } else {
+      setError(`No se encontró el jugador con ID: ${jugadorIdStr}`);
     }
-  };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Error al recuperar datos del jugador';
+    setError(errorMessage);
+    console.error('Error recuperando jugador para editar:', err);
+  } finally {
+    setLoadingEdit(null);
+  }
+};
   const handleAgregarJugador = ( ) => {
     // Actualizar la búsqueda para incluir el nuevo jugador
     if (query.trim()) {

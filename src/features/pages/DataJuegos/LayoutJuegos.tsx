@@ -1,5 +1,4 @@
 import * as React from 'react';
-import VisualizacionJuegos from './VisualizacionJuegos';
 import ContenedorJuego from './ContenedorJuego';
 
 const LayoutJuegosCompleto: React.FC = () => {
@@ -17,7 +16,6 @@ const LayoutJuegosCompleto: React.FC = () => {
         borderRight: '2px solid #e5e7eb',
         backgroundColor: '#ffffff'
       }}>
-        <VisualizacionJuegos />
       </div>
 
       {/* Panel Derecho - ContenedorJuego */}
