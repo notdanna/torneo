@@ -4,11 +4,13 @@ import { NodoTorneo } from '../models/grafos';
 
 export const renderBracket = (
   svgRef: React.RefObject<SVGSVGElement>, 
-  estructura: NodoTorneo[][]
+  estructura: NodoTorneo[][],
+  rondasVisibles?: number[]
 ): void => {
   if (!svgRef.current || estructura.length === 0) return;
 
   console.log('🎨 Dibujando árbol compacto con D3');
+  console.log('👁️ Rondas visibles:', rondasVisibles);
 
   const svg = d3.select(svgRef.current);
   svg.selectAll("*").remove();
@@ -40,14 +42,17 @@ export const renderBracket = (
     const nodosEnRonda = ronda.length;
     const espacioVertical = Math.max(verticalSpacing, (height - 2 * margin) / nodosEnRonda);
 
-    // Título de ronda compacto
-    const tituloRonda = rondaIndex === 0 ? 'R1' :
+    // Calcular el número de ronda original si se proporcionan las rondas visibles
+    const numeroRondaOriginal = rondasVisibles ? rondasVisibles[rondaIndex] + 1 : rondaIndex + 1;
+    
+    // Título de ronda compacto - usar el número de ronda original
+    const tituloRonda = rondaIndex === 0 ? `R${numeroRondaOriginal}` :
                        rondaIndex === estructura.length - 1 ? '🏆' :
                        rondaIndex === estructura.length - 2 ? 'F' :
                        nodosEnRonda === 2 ? 'SF' :
                        nodosEnRonda === 4 ? 'QF' :
                        nodosEnRonda === 8 ? 'R16' :
-                       `R${rondaIndex + 1}`;
+                       `R${numeroRondaOriginal}`;
 
     svg.append("text")
       .attr("x", x + rondaWidth / 2)
@@ -78,10 +83,12 @@ export const renderBracket = (
       if (rondaIndex === estructura.length - 1) {
         renderCompactFinalNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight);
       } else {
-        renderCompactRegularNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight, rondaIndex);
+        // Usar el número de ronda original para calcular si los jugadores han avanzado
+        const rondaOriginalIndex = rondasVisibles ? rondasVisibles[rondaIndex] : rondaIndex;
+        renderCompactRegularNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight, rondaOriginalIndex);
       }
 
-      // Conexiones compactas
+      // Conexiones compactas - solo renderizar si no es la última ronda
       if (rondaIndex < estructura.length - 1) {
         renderCompactConnections(svg, estructura, rondaIndex, nodoIndex, x, y, rondaWidth, margin, height, nodeWidth);
       }
@@ -145,7 +152,7 @@ const renderCompactRegularNode = (
   y: number,
   nodeWidth: number,
   nodeHeight: number,
-  rondaIndex: number
+  rondaOriginalIndex: number
 ): void => {
   // Línea divisoria central
   svg.append("line")
@@ -160,7 +167,7 @@ const renderCompactRegularNode = (
 
   // Jugador 1 (arriba)
   if (nodo.jugador1) {
-    const avanzo1 = nodo.jugador1.nivel > rondaIndex;
+    const avanzo1 = nodo.jugador1.nivel > rondaOriginalIndex;
     
     if (avanzo1) {
       svg.append("rect")
@@ -198,7 +205,7 @@ const renderCompactRegularNode = (
 
   // Jugador 2 (abajo)
   if (nodo.jugador2) {
-    const avanzo2 = nodo.jugador2.nivel > rondaIndex;
+    const avanzo2 = nodo.jugador2.nivel > rondaOriginalIndex;
     
     if (avanzo2) {
       svg.append("rect")
