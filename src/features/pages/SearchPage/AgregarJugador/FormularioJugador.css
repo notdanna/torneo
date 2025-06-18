@@ -1,0 +1,397 @@
+.formulario-wizard {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .wizard-progress {
+    margin-bottom: 30px;
+  }
+
+  .progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 1;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background: white;
+    padding: 0 10px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 8px;
+    border: 2px solid #e9ecef;
+  }
+
+  .step.active .step-number {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+
+  .step.completed .step-number {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+  }
+
+  .step-label {
+    font-size: 12px;
+    text-align: center;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .step.active .step-label {
+    color: #007bff;
+    font-weight: 600;
+  }
+
+  .step.completed .step-label {
+    color: #28a745;
+    font-weight: 600;
+  }
+
+  .wizard-step {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid #e9ecef;
+  }
+
+  .step-header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .step-title {
+    margin: 0 0 10px 0;
+    color: #495057;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .step-description {
+    margin: 0 0 20px 0;
+    color: #6c757d;
+    font-size: 16px;
+  }
+
+  .jugador-info, .resumen-info {
+    background: #d4edda;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
+    margin-top: 15px;
+  }
+
+  .jugador-info p, .resumen-info p {
+    margin: 5px 0;
+    color: #155724;
+    font-weight: 500;
+  }
+
+  .form-section {
+    margin-bottom: 25px;
+  }
+
+  .section-title {
+    margin: 0 0 20px 0;
+    color: #495057;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+
+  .form-help {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6c757d;
+  }
+
+  .form-help.success {
+    color: #28a745;
+    font-weight: 500;
+  }
+
+  .error-text {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #dc3545;
+    font-weight: 500;
+  }
+
+  .juego-info, .resumen-final {
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ffeaa7;
+    margin-top: 20px;
+  }
+
+  .juego-info h5, .resumen-final h5 {
+    margin: 0 0 15px 0;
+    color: #856404;
+    font-size: 16px;
+  }
+
+  .juego-info p, .resumen-final p {
+    margin: 8px 0;
+    color: #856404;
+    font-weight: 500;
+  }
+
+  .resumen-details {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
+
+  .step-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .btn-cancel, .btn-confirm, .btn-finish {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 140px;
+  }
+
+  .btn-cancel {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-cancel:hover:not(:disabled) {
+    background: #5a6268;
+    transform: translateY(-1px);
+  }
+
+  .btn-confirm {
+    background: #007bff;
+    color: white;
+  }
+
+  .btn-confirm:hover:not(:disabled) {
+    background: #0056b3;
+    transform: translateY(-1px);
+  }
+
+  .btn-finish {
+    background: #28a745;
+    color: white;
+  }
+
+  .btn-finish:hover:not(:disabled) {
+    background: #1e7e34;
+    transform: translateY(-1px);
+  }
+
+  .btn-cancel:disabled, .btn-confirm:disabled, .btn-finish:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  .success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .formulario-wizard {
+      padding: 15px;
+      max-width: 100%;
+    }
+
+    .wizard-step {
+      padding: 20px;
+    }
+
+    .progress-steps {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .progress-steps::before {
+      display: none;
+    }
+
+    .step {
+      flex-direction: row;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 0;
+    }
+
+    .step-number {
+      margin-right: 15px;
+      margin-bottom: 0;
+      width: 35px;
+      height: 35px;
+      font-size: 14px;
+    }
+
+    .step-label {
+      font-size: 14px;
+      align-self: center;
+    }
+
+    .step-actions {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-cancel, .btn-confirm, .btn-finish {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+
+  /* Animaciones */
+  .wizard-step {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .step-number {
+    transition: all 0.3s ease;
+  }
+
+  .form-input, .form-select {
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel, .btn-confirm, .btn-finish {
+    transition: all 0.3s ease;
+  }
+
+  /* Estados de loading */
+  .form-input:disabled, .form-select:disabled {
+    background-color: #e9ecef;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Mejoras visuales */
+  .wizard-progress {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .wizard-step {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .form-input:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+
+  /* Iconos y elementos visuales mejorados */
+  .step.completed .step-number::after {
+    content: '✓';
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .form-group label::after {
+    content: attr(data-required);
+    color: #dc3545;
+    margin-left: 4px;
+  }
