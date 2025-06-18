@@ -6,7 +6,7 @@ import { useFirebaseData } from '../../../../core/hooks/futbolitoGrupos/useFireb
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
-const BracketTiempoReal: React.FC = () => {
+const BracketTiempoReal11: React.FC = () => {
   const {
     partidas,
     nivelesJugadores,
@@ -53,4 +53,4 @@ const BracketTiempoReal: React.FC = () => {
   );
 };
 
-export default BracketTiempoReal;
+export default BracketTiempoReal11;

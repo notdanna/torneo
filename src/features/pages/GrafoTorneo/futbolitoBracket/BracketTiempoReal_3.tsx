@@ -2,11 +2,11 @@
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { useFirebaseData } from '../../../../core/hooks/futbolitoGrupos/useFirebaseDataGrafo_1';
+import { useFirebaseData } from '../../../../core/hooks/futbolitoGrupos/useFirebaseDataGrafo_3';
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
-const BracketTiempoReal: React.FC = () => {
+const BracketTiempoReal13: React.FC = () => {
   const {
     partidas,
     nivelesJugadores,
@@ -53,4 +53,4 @@ const BracketTiempoReal: React.FC = () => {
   );
 };
 
-export default BracketTiempoReal;
+export default BracketTiempoReal13;
