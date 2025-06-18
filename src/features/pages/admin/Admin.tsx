@@ -1,5 +1,6 @@
+import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft,  Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
+import { ArrowLeft, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
 
 // --- INTERFACES ADAPTADAS A LA NUEVA RESPUESTA DE LA API ---
 interface ApiJugador {
@@ -61,9 +62,8 @@ const AdministrarGrupoJuego = () => {
   const [availableRondas, setAvailableRondas] = useState<number[]>([]);
   const [rondaSeleccionada, setRondaSeleccionada] = useState<string>('todas');
 
-  // Estados para crear ronda
+  // Estados para crear ronda (simplificado)
   const [numPartidas, setNumPartidas] = useState('');
-  const [nivelPartida, setNivelPartida] = useState('');
 
   // Estados de carga y error
   const [cargando, setCargando] = useState(true);
@@ -228,24 +228,47 @@ const AdministrarGrupoJuego = () => {
   };
 
   const handleCreateRonda = async () => {
-    if (!numPartidas || !nivelPartida || !idJuego || !idGrupo) return alert("Por favor, completa todos los campos para crear la ronda.");
+    if (!idJuego || !idGrupo) return;
+
+    let numeroDePartidasParaAPI: number;
+    const nivelParaNuevaRonda = infoJuego ? infoJuego.rondas : 0;
+
+    if (infoJuego && infoJuego.rondas > 0) {
+        // Lógica para rondas subsecuentes
+        const ultimaRondaNum = Math.max(...availableRondas);
+        const partidasEnUltimaRonda = partidas.filter(p => p.ronda === ultimaRondaNum).length;
+        numeroDePartidasParaAPI = Math.floor(partidasEnUltimaRonda / 2);
+
+        if (numeroDePartidasParaAPI < 1) {
+            alert("El torneo ha finalizado. No se pueden crear más rondas.");
+            return;
+        }
+    } else {
+        // Lógica para la primera ronda
+        if (!numPartidas) {
+            alert("Por favor, selecciona el número de partidas para iniciar el torneo.");
+            return;
+        }
+        numeroDePartidasParaAPI = parseInt(numPartidas);
+    }
+    
     setIsCreating(true);
     try {
         const url = `https://api-e3mal3grqq-uc.a.run.app/api/partidas`;
         const body = {
             id_juego: parseInt(idJuego),
             id_grupo: parseInt(idGrupo),
-            num_partidas: parseInt(numPartidas),
-            nivel_partida: parseInt(nivelPartida)
+            num_partidas: numeroDePartidasParaAPI,
+            nivel_partida: nivelParaNuevaRonda
         };
         const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: `Error en la API: ${response.status}` }));
             throw new Error(errorData.message || 'Error desconocido al crear la ronda.');
         }
+        
         setNumPartidas('');
-        setNivelPartida('');
-        await fetchPartidas(idJuego, idGrupo, true); // <--- CAMBIO: Pasa true para seleccionar la última ronda
+        await fetchPartidas(idJuego, idGrupo, true);
     } catch (err) {
         alert(`No se pudo crear la ronda: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     } finally {
@@ -372,19 +395,23 @@ const AdministrarGrupoJuego = () => {
             </div>
 
             <div style={{ background: 'white', borderRadius: '8px', padding: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <div style={{ background: '#16a34a', color: 'white', padding: '8px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}><Swords size={16}/>Crear Nueva Ronda</div>
+              <div style={{ background: '#16a34a', color: 'white', padding: '8px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}><Swords size={16}/>
+                {infoJuego && infoJuego.rondas > 0 ? 'Siguiente Ronda' : 'Crear Ronda Inicial'}
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <select value={numPartidas} onChange={e => setNumPartidas(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }}>
-                    <option value="" disabled># de Partidas</option>
-                    <option value="1">1 Partida</option>
-                    <option value="2">2 Partidas</option>
-                    <option value="4">4 Partidas</option>
-                    <option value="8">8 Partidas</option>
-                    <option value="16">16 Partidas</option>
-                </select>
-                <input type="number" placeholder="Nivel de la Partida" value={nivelPartida} onChange={e => setNivelPartida(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }} />
+                {infoJuego && infoJuego.rondas > 0 ? null : (
+                    <select value={numPartidas} onChange={e => setNumPartidas(e.target.value)} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }}>
+                        <option value="" disabled># de Partidas Iniciales</option>
+                        <option value="32">32 Partidas</option>
+                        <option value="16">16 Partidas</option>
+                        <option value="8">8 Partidas</option>
+                        <option value="4">4 Partidas</option>
+                        <option value="2">2 Partidas</option>
+                        <option value="1">1 Partida</option>
+                    </select>
+                )}
                 <button onClick={handleCreateRonda} disabled={isCreating} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: isCreating ? 'not-allowed' : 'pointer', opacity: isCreating ? 0.5 : 1, transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  {isCreating ? <><LoaderCircle size={16} className="animate-spin" /> Creando...</> : 'Crear Ronda'}
+                  {isCreating ? <><LoaderCircle size={16} className="animate-spin" /> Creando...</> : (infoJuego && infoJuego.rondas > 0 ? 'Crear Siguiente Ronda' : 'Crear Ronda')}
                 </button>
               </div>
             </div>

@@ -1,96 +1,193 @@
-// utils/d3RendererCompact.ts
+// notdanna/torneo/torneo-aee1783eb67b4c33057cc1c53182dbef6b508154/src/core/utils/d3Render.ts
+
 import * as d3 from 'd3';
-import { NodoTorneo } from '../models/grafos';
+import { NodoTorneo, Jugador } from '../models/grafos';
+
+// Las funciones auxiliares (renderWinnerNode, etc.) no necesitan cambios.
+// Todo el ajuste se realiza en la función principal renderBracket.
+
+const renderWinnerNode = (
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+    nodo: NodoTorneo,
+    width: number,
+    height: number
+  ): void => {
+    const ganador = nodo.jugador1 || nodo.jugador2;
+    if (!ganador) return;
+  
+    const nodeWidth = width * 0.8;
+    const nodeHeight = height * 0.7;
+    const x = (width - nodeWidth) / 2;
+    const y = (height - nodeHeight) / 2;
+  
+    svg.append("rect")
+      .attr("x", x)
+      .attr("y", y)
+      .attr("width", nodeWidth)
+      .attr("height", nodeHeight)
+      .attr("rx", 20)
+      .style("fill", "#fef3c7")
+      .style("stroke", "#f59e0b")
+      .style("stroke-width", 4);
+  
+    svg.append("text")
+      .attr("x", x + nodeWidth / 2)
+      .attr("y", y + nodeHeight * 0.3)
+      .attr("text-anchor", "middle")
+      .style("font-size", `${nodeHeight * 0.25}px`)
+      .text("👑");
+  
+    const fontSize = Math.min(nodeHeight * 0.15, nodeWidth / (ganador.nombre.length * 0.6));
+    svg.append("text")
+      .attr("x", x + nodeWidth / 2)
+      .attr("y", y + nodeHeight * 0.55)
+      .attr("text-anchor", "middle")
+      .style("font-size", `${fontSize}px`)
+      .style("font-weight", "bold")
+      .style("fill", "#92400e")
+      .text(ganador.nombre);
+  
+    if ((ganador as any).nombreAcompanante) {
+      const companionFontSize = fontSize * 0.8;
+      svg.append("text")
+        .attr("x", x + nodeWidth / 2)
+        .attr("y", y + nodeHeight * 0.75)
+        .attr("text-anchor", "middle")
+        .style("font-size", `${companionFontSize}px`)
+        .style("fill", "#92400e")
+        .text(`+ ${(ganador as any).nombreAcompanante}`);
+    }
+};
 
 export const renderBracket = (
-  svgRef: React.RefObject<SVGSVGElement>, 
+  svgRef: React.RefObject<SVGSVGElement>,
   estructura: NodoTorneo[][],
   rondasVisibles?: number[]
 ): void => {
   if (!svgRef.current || estructura.length === 0) return;
 
-  console.log('🎨 Dibujando árbol compacto con D3');
-  console.log('👁️ Rondas visibles:', rondasVisibles);
-
   const svg = d3.select(svgRef.current);
   svg.selectAll("*").remove();
 
-  // Obtener el ancho del contenedor padre (100% de la pantalla)
-  const containerWidth = svgRef.current.parentElement?.clientWidth || window.innerWidth;
+  const container = svgRef.current.parentElement;
+  if (!container) return;
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
   
-  // Dimensiones adaptativas
-  const maxPartidas = Math.max(...estructura.map(ronda => ronda.length));
-  const margin = 20;
-  
-  // Calcular ancho de ronda basado en el espacio disponible
-  const availableWidth = containerWidth - (margin * 2);
-  const rondaWidth = availableWidth / estructura.length;
-  
-  const nodeHeight = 40;
-  const verticalSpacing = 50;
-  
-  const width = containerWidth; // 100% del ancho disponible
-  const height = maxPartidas * verticalSpacing + (margin * 2);
-  
-  svg.attr("width", width).attr("height", height);
+  svg.attr("width", containerWidth).attr("height", containerHeight);
 
-  console.log('📊 Estructura compacta:', estructura);
-  console.log('📐 Ancho contenedor:', containerWidth, 'Ancho por ronda:', rondaWidth);
+  const rondaFinal = estructura[estructura.length - 1];
+  const nodoFinal = rondaFinal && rondaFinal.length === 1 ? rondaFinal[0] : null;
+  const ganadorTorneo = nodoFinal ? (nodoFinal.jugador1 || nodoFinal.jugador2) : null;
 
-  estructura.forEach((ronda, rondaIndex) => {
-    const x = margin + (rondaIndex * rondaWidth);
-    const nodosEnRonda = ronda.length;
-    const espacioVertical = Math.max(verticalSpacing, (height - 2 * margin) / nodosEnRonda);
+  if (ganadorTorneo && nodoFinal) {
+    renderWinnerNode(svg, nodoFinal, containerWidth, containerHeight);
+    return;
+  }
 
-    // Calcular el número de ronda original si se proporcionan las rondas visibles
-    const numeroRondaOriginal = rondasVisibles ? rondasVisibles[rondaIndex] + 1 : rondaIndex + 1;
+  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const width = containerWidth;
+  const height = containerHeight; // Límite estricto
+
+  const nodeCalculations: { x: number; y: number; width: number; height: number }[][] = Array(estructura.length).fill(0).map(() => []);
+  
+  const numRondas = estructura.length;
+  const rondaWidth = (width - margin.left - margin.right) / numRondas;
+  const baseNodeWidth = 110;
+
+  // --- INICIO DE LA LÓGICA CORREGIDA ---
+
+  // 1. Escala de visibilidad moderada
+  const totalRoundsInTournament = Math.log2(estructura[0].length * 2) || numRondas;
+  const visibilityScale = Math.max(1, (totalRoundsInTournament / numRondas));
+
+  // 2. Cálculo de la primera ronda, restringido por la altura del contenedor
+  if (estructura.length > 0) {
+    const firstRonda = estructura[0];
+    const nodosEnRonda = firstRonda.length;
+
+    // El espacio vertical disponible por nodo es el límite principal
+    const espacioVertical = (height - margin.top - margin.bottom) / nodosEnRonda;
+
+    // La altura del nodo es un 80% del espacio disponible, con un tamaño base que escala moderadamente
+    const nodeHeight = Math.min(espacioVertical * 0.8, 45 * visibilityScale);
+    const nodeWidth = Math.min(rondaWidth - 20, baseNodeWidth * visibilityScale);
+
+    firstRonda.forEach((_, nodoIndex) => {
+      // Distribuir nodos uniformemente en el espacio disponible
+      const y = margin.top + (nodoIndex * espacioVertical) + (espacioVertical / 2);
+      const x = margin.left + (rondaWidth - nodeWidth) / 2;
+      nodeCalculations[0][nodoIndex] = { x, y, width: nodeWidth, height: nodeHeight };
+    });
+  }
+
+  // 3. Cálculo de rondas subsecuentes con topes de tamaño
+  for (let i = 1; i < estructura.length; i++) {
+    const scaleFactor = visibilityScale * (1 + i * 0.15); // Escalado por ronda moderado
     
-    // Título de ronda compacto - usar el número de ronda original
-    const tituloRonda = rondaIndex === 0 ? `R${numeroRondaOriginal}` :
-                       rondaIndex === estructura.length - 1 ? '🏆' :
-                       rondaIndex === estructura.length - 2 ? 'F' :
-                       nodosEnRonda === 2 ? 'SF' :
-                       nodosEnRonda === 4 ? 'QF' :
-                       nodosEnRonda === 8 ? 'R16' :
-                       `R${numeroRondaOriginal}`;
+    // Se añade un tope máximo al tamaño para evitar que los nodos finales sean excesivamente grandes
+    const nodeHeight = Math.min(90, 45 * scaleFactor); 
+    const nodeWidth = Math.min(rondaWidth - 20, baseNodeWidth * scaleFactor);
 
-    svg.append("text")
-      .attr("x", x + rondaWidth / 2)
-      .attr("y", 12)
-      .attr("text-anchor", "middle")
-      .style("font-size", "11px")
-      .style("font-weight", "bold")
-      .style("fill", "#1f2937")
-      .text(tituloRonda);
+    estructura[i].forEach((_, nodoIndex) => {
+      const parent1 = nodeCalculations[i - 1][nodoIndex * 2];
+      const parent2 = nodeCalculations[i - 1][(nodoIndex * 2) + 1];
+      let y: number;
 
-    ronda.forEach((nodo, nodoIndex) => {
-      const y = margin + (nodoIndex * espacioVertical) + (espacioVertical / 2);
-
-      // Rectángulo del nodo ajustado al nuevo ancho
-      const nodeWidth = Math.max(rondaWidth - 40, 80); // Mínimo de 80px
-      svg.append("rect")
-        .attr("x", x + (rondaWidth - nodeWidth) / 2) // Centrar el nodo
-        .attr("y", y - nodeHeight/2)
-        .attr("width", nodeWidth)
-        .attr("height", nodeHeight)
-        .attr("rx", 4)
-        .style("fill", "#ffffff")
-        .style("stroke", "#e5e7eb")
-        .style("stroke-width", 1);
-
-      // Renderizar contenido según tipo de nodo
-      const nodeX = x + (rondaWidth - nodeWidth) / 2;
-      if (rondaIndex === estructura.length - 1) {
-        renderCompactFinalNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight);
+      if (parent1 && parent2) {
+        y = (parent1.y + parent2.y) / 2;
+      } else if (parent1) {
+        y = parent1.y;
       } else {
-        // Usar el número de ronda original para calcular si los jugadores han avanzado
-        const rondaOriginalIndex = rondasVisibles ? rondasVisibles[rondaIndex] : rondaIndex;
-        renderCompactRegularNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight, rondaOriginalIndex);
+        y = height / 2;
       }
 
-      // Conexiones compactas - solo renderizar si no es la última ronda
-      if (rondaIndex < estructura.length - 1) {
-        renderCompactConnections(svg, estructura, rondaIndex, nodoIndex, x, y, rondaWidth, margin, height, nodeWidth);
+      const x = margin.left + (i * rondaWidth) + (rondaWidth - nodeWidth) / 2;
+      nodeCalculations[i][nodoIndex] = { x, y, width: nodeWidth, height: nodeHeight };
+    });
+  }
+  // --- FIN DE LA LÓGICA CORREGIDA ---
+
+  // El resto del código (dibujado) permanece igual
+  for (let i = 0; i < nodeCalculations.length - 1; i++) {
+    for (let j = 0; j < nodeCalculations[i].length; j++) {
+      if (j % 2 === 1) { 
+          const source1 = nodeCalculations[i][j - 1];
+          const source2 = nodeCalculations[i][j];
+          const target = nodeCalculations[i + 1][Math.floor(j / 2)];
+          
+          if (!source1 || !source2 || !target) continue;
+
+          const midPointX = source1.x + source1.width + rondaWidth / 4;
+          
+          svg.append("line").attr("x1", source1.x + source1.width).attr("y1", source1.y).attr("x2", midPointX).attr("y2", source1.y).style("stroke", "#d1d5db").style("stroke-width", 1.5);
+          svg.append("line").attr("x1", source2.x + source2.width).attr("y1", source2.y).attr("x2", midPointX).attr("y2", source2.y).style("stroke", "#d1d5db").style("stroke-width", 1.5);
+          svg.append("line").attr("x1", midPointX).attr("y1", source1.y).attr("x2", midPointX).attr("y2", source2.y).style("stroke", "#d1d5db").style("stroke-width", 1.5);
+          svg.append("line").attr("x1", midPointX).attr("y1", target.y).attr("x2", target.x).attr("y2", target.y).style("stroke", "#d1d5db").style("stroke-width", 1.5);
+      }
+    }
+  }
+
+  estructura.forEach((ronda, rondaIndex) => {
+    ronda.forEach((nodo, nodoIndex) => {
+      const { x, y, width, height } = nodeCalculations[rondaIndex][nodoIndex];
+      const scaleFactor = visibilityScale * (1 + rondaIndex * 0.15);
+
+      svg.append("rect")
+        .attr("x", x)
+        .attr("y", y - height / 2)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("rx", 6)
+        .style("fill", "#ffffff")
+        .style("stroke", "#e5e7eb")
+        .style("stroke-width", 1.5);
+
+      const rondaOriginalIndex = rondasVisibles ? rondasVisibles[rondaIndex] : rondaIndex;
+      if (rondaIndex === estructura.length - 1) {
+        renderCompactFinalNode(svg, nodo, x, y, width, height, scaleFactor);
+      } else {
+        renderCompactRegularNode(svg, nodo, x, y, width, height, rondaOriginalIndex, scaleFactor);
       }
     });
   });
@@ -102,47 +199,39 @@ const renderCompactFinalNode = (
   x: number,
   y: number,
   nodeWidth: number,
-  nodeHeight: number
+  nodeHeight: number,
+  scaleFactor: number
 ): void => {
-  const ganador = nodo.jugador1 || nodo.jugador2;
-  if (ganador) {
-    // Fondo dorado para el ganador
-    svg.append("rect")
-      .attr("x", x + 2)
-      .attr("y", y - nodeHeight/2 + 2)
-      .attr("width", nodeWidth - 4)
-      .attr("height", nodeHeight - 4)
-      .attr("rx", 4)
-      .style("fill", "#fef3c7")
-      .style("stroke", "#f59e0b")
-      .style("stroke-width", 2);
+    const ganador = nodo.jugador1 || nodo.jugador2;
+    if (ganador) {
+        svg.append("rect")
+            .attr("x", x + 2).attr("y", y - nodeHeight / 2 + 2)
+            .attr("width", nodeWidth - 4).attr("height", nodeHeight - 4)
+            .attr("rx", 4).style("fill", "#fef3c7").style("stroke", "#f59e0b").style("stroke-width", 2);
 
-    // Corona y nombre
-    svg.append("text")
-      .attr("x", x + nodeWidth/2)
-      .attr("y", y - 2)
-      .attr("text-anchor", "middle")
-      .style("font-size", "14px")
-      .text("👑");
+        svg.append("text")
+            .attr("x", x + nodeWidth / 2).attr("y", y - nodeHeight * 0.1)
+            .attr("text-anchor", "middle").style("font-size", `${Math.min(14 * scaleFactor, nodeHeight * 0.3)}px`).text("👑");
 
-    const maxChars = Math.floor(nodeWidth / 8); // Ajustar caracteres según ancho
-    svg.append("text")
-      .attr("x", x + nodeWidth/2)
-      .attr("y", y + 10)
-      .attr("text-anchor", "middle")
-      .style("font-size", "10px")
-      .style("font-weight", "bold")
-      .style("fill", "#92400e")
-      .text(truncateName(ganador.nombre, maxChars));
-  } else {
-    svg.append("text")
-      .attr("x", x + nodeWidth/2)
-      .attr("y", y + 3)
-      .attr("text-anchor", "middle")
-      .style("font-size", "10px")
-      .style("fill", "#9ca3af")
-      .text("...");
-  }
+        const fontSize = Math.min(11 * scaleFactor, nodeHeight * 0.22);
+        const maxChars = Math.floor(nodeWidth / (fontSize * 0.6));
+
+        svg.append("text")
+            .attr("x", x + nodeWidth / 2).attr("y", y + nodeHeight * 0.15)
+            .attr("text-anchor", "middle").style("font-size", `${fontSize}px`).style("font-weight", "bold").style("fill", "#92400e")
+            .text(truncateName(ganador.nombre, maxChars));
+
+        if ((ganador as any).nombreAcompanante) {
+            svg.append("text")
+                .attr("x", x + nodeWidth / 2).attr("y", y + nodeHeight * 0.35)
+                .attr("text-anchor", "middle").style("font-size", `${fontSize * 0.9}px`).style("fill", "#92400e")
+                .text(truncateName(`+ ${(ganador as any).nombreAcompanante}`, maxChars));
+        }
+    } else {
+        svg.append("text")
+            .attr("x", x + nodeWidth / 2).attr("y", y + 3)
+            .attr("text-anchor", "middle").style("font-size", "10px").style("fill", "#9ca3af").text("...");
+    }
 };
 
 const renderCompactRegularNode = (
@@ -152,161 +241,64 @@ const renderCompactRegularNode = (
   y: number,
   nodeWidth: number,
   nodeHeight: number,
-  rondaOriginalIndex: number
+  rondaOriginalIndex: number,
+  scaleFactor: number
 ): void => {
-  // Línea divisoria central
-  svg.append("line")
-    .attr("x1", x + 5)
-    .attr("y1", y)
-    .attr("x2", x + nodeWidth - 5)
-    .attr("y2", y)
-    .style("stroke", "#e5e7eb")
-    .style("stroke-width", 1);
-
-  const maxChars = Math.floor(nodeWidth / 10); // Ajustar caracteres según ancho
-
-  // Jugador 1 (arriba)
-  if (nodo.jugador1) {
-    const avanzo1 = nodo.jugador1.nivel > rondaOriginalIndex;
-    
-    if (avanzo1) {
-      svg.append("rect")
-        .attr("x", x + 2)
-        .attr("y", y - nodeHeight/2 + 2)
-        .attr("width", nodeWidth - 4)
-        .attr("height", nodeHeight/2 - 3)
-        .attr("rx", 2)
-        .style("fill", "#dcfce7")
-        .style("stroke", "none");
-    }
-
-    svg.append("text")
-      .attr("x", x + 4)
-      .attr("y", y - 6)
-      .style("font-size", "9px")
-      .style("font-weight", avanzo1 ? "600" : "400")
-      .style("fill", avanzo1 ? "#15803d" : "#1e40af")
-      .text(truncateName(nodo.jugador1.nombre, maxChars));
-
-    svg.append("text")
-      .attr("x", x + nodeWidth - 15)
-      .attr("y", y - 6)
-      .style("font-size", "8px")
-      .style("fill", "#6b7280")
-      .text(`L${nodo.jugador1.nivel}`);
-  } else {
-    svg.append("text")
-      .attr("x", x + 4)
-      .attr("y", y - 6)
-      .style("font-size", "8px")
-      .style("fill", "#9ca3af")
-      .text("---");
-  }
-
-  // Jugador 2 (abajo)
-  if (nodo.jugador2) {
-    const avanzo2 = nodo.jugador2.nivel > rondaOriginalIndex;
-    
-    if (avanzo2) {
-      svg.append("rect")
-        .attr("x", x + 2)
-        .attr("y", y + 1)
-        .attr("width", nodeWidth - 4)
-        .attr("height", nodeHeight/2 - 3)
-        .attr("rx", 2)
-        .style("fill", "#dcfce7")
-        .style("stroke", "none");
-    }
-
-    svg.append("text")
-      .attr("x", x + 4)
-      .attr("y", y + 12)
-      .style("font-size", "9px")
-      .style("font-weight", avanzo2 ? "600" : "400")
-      .style("fill", avanzo2 ? "#15803d" : "#1e40af")
-      .text(truncateName(nodo.jugador2.nombre, maxChars));
-
-    svg.append("text")
-      .attr("x", x + nodeWidth - 15)
-      .attr("y", y + 12)
-      .style("font-size", "8px")
-      .style("fill", "#6b7280")
-      .text(`L${nodo.jugador2.nivel}`);
-  } else {
-    svg.append("text")
-      .attr("x", x + 4)
-      .attr("y", y + 12)
-      .style("font-size", "8px")
-      .style("fill", "#9ca3af")
-      .text("---");
-  }
-};
-
-const renderCompactConnections = (
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  estructura: NodoTorneo[][],
-  rondaIndex: number,
-  nodoIndex: number,
-  x: number,
-  y: number,
-  rondaWidth: number,
-  margin: number,
-  height: number,
-  nodeWidth: number
-): void => {
-  const siguienteRonda = estructura[rondaIndex + 1];
-  const targetNodoIndex = Math.floor(nodoIndex / 2);
-  
-  if (targetNodoIndex < siguienteRonda.length) {
-    const nextX = x + rondaWidth;
-    const nextEspacioVertical = Math.max(50, (height - 2 * margin) / siguienteRonda.length);
-    const targetY = margin + (targetNodoIndex * nextEspacioVertical) + (nextEspacioVertical / 2);
-
-    // Calcular posición del borde del nodo actual
-    const nodeRightEdge = x + (rondaWidth - nodeWidth) / 2 + nodeWidth;
-    const connectionLength = rondaWidth - nodeWidth - 20; // Espacio para conexión
-
-    // Línea horizontal
     svg.append("line")
-      .attr("x1", nodeRightEdge)
-      .attr("y1", y)
-      .attr("x2", nodeRightEdge + connectionLength / 2)
-      .attr("y2", y)
-      .style("stroke", "#d1d5db")
-      .style("stroke-width", 1);
+        .attr("x1", x + 5).attr("y1", y)
+        .attr("x2", x + nodeWidth - 5).attr("y2", y)
+        .style("stroke", "#e5e7eb").style("stroke-width", 1);
+    
+    const baseFontSize = Math.min(9 * scaleFactor, nodeHeight * 0.25);
+    const maxChars = Math.floor(nodeWidth / (baseFontSize * 0.7));
 
-    // Conexión en pares
-    if (nodoIndex % 2 === 1) {
-      const espacioVertical = Math.max(50, (height - 2 * margin) / estructura[rondaIndex].length);
-      const prevY = margin + ((nodoIndex - 1) * espacioVertical) + (espacioVertical / 2);
-      
-      const connectionX = nodeRightEdge + connectionLength / 2;
-      
-      // Línea vertical
-      svg.append("line")
-        .attr("x1", connectionX)
-        .attr("y1", prevY)
-        .attr("x2", connectionX)
-        .attr("y2", y)
-        .style("stroke", "#d1d5db")
-        .style("stroke-width", 1);
-
-      // Línea hacia el siguiente nodo
-      const nextNodeWidth = Math.max(rondaWidth - 40, 80);
-      const nextNodeX = nextX + (rondaWidth - nextNodeWidth) / 2;
-      
-      svg.append("line")
-        .attr("x1", connectionX)
-        .attr("y1", (prevY + y) / 2)
-        .attr("x2", nextNodeX)
-        .attr("y2", targetY)
-        .style("stroke", "#d1d5db")
-        .style("stroke-width", 1);
+    const jugador1 = nodo.jugador1 as (Jugador & { nombreAcompanante?: string }) | null;
+    if (jugador1) {
+        const avanzo1 = jugador1.nivel > rondaOriginalIndex;
+        if (avanzo1) {
+            svg.append("rect")
+                .attr("x", x + 2).attr("y", y - nodeHeight / 2 + 2)
+                .attr("width", nodeWidth - 4).attr("height", nodeHeight / 2 - 3)
+                .attr("rx", 2).style("fill", "#dcfce7");
+        }
+        svg.append("text")
+            .attr("x", x + 4).attr("y", y - nodeHeight * 0.25 + 2)
+            .style("font-size", `${baseFontSize}px`).style("font-weight", avanzo1 ? "600" : "400").style("fill", avanzo1 ? "#15803d" : "#1e40af")
+            .text(truncateName(jugador1.nombre, maxChars));
+        if (jugador1.nombreAcompanante) {
+            svg.append("text")
+                .attr("x", x + 4).attr("y", y - nodeHeight * 0.05 + 2)
+                .style("font-size", `${baseFontSize * 0.9}px`).style("fill", "#4b5563")
+                .text(truncateName(`+ ${jugador1.nombreAcompanante}`, maxChars));
+        }
+    } else {
+        svg.append("text").attr("x", x + 4).attr("y", y - 6).style("font-size", `${8 * scaleFactor}px`).style("fill", "#9ca3af").text("---");
     }
-  }
+
+    const jugador2 = nodo.jugador2 as (Jugador & { nombreAcompanante?: string }) | null;
+    if (jugador2) {
+        const avanzo2 = jugador2.nivel > rondaOriginalIndex;
+        if (avanzo2) {
+            svg.append("rect")
+                .attr("x", x + 2).attr("y", y + 1)
+                .attr("width", nodeWidth - 4).attr("height", nodeHeight / 2 - 3)
+                .attr("rx", 2).style("fill", "#dcfce7");
+        }
+        svg.append("text")
+            .attr("x", x + 4).attr("y", y + nodeHeight * 0.25 - 2)
+            .style("font-size", `${baseFontSize}px`).style("font-weight", avanzo2 ? "600" : "400").style("fill", avanzo2 ? "#15803d" : "#1e40af")
+            .text(truncateName(jugador2.nombre, maxChars));
+        if (jugador2.nombreAcompanante) {
+            svg.append("text")
+                .attr("x", x + 4).attr("y", y + nodeHeight * 0.45 - 2)
+                .style("font-size", `${baseFontSize * 0.9}px`).style("fill", "#4b5563")
+                .text(truncateName(`+ ${jugador2.nombreAcompanante}`, maxChars));
+        }
+    } else {
+        svg.append("text").attr("x", x + 4).attr("y", y + 12).style("font-size", `${8 * scaleFactor}px`).style("fill", "#9ca3af").text("---");
+    }
 };
 
-// Función auxiliar para truncar nombres largos
 const truncateName = (name: string, maxLength: number): string => {
   if (name.length <= maxLength) return name;
   return name.substring(0, maxLength - 2) + '..';
