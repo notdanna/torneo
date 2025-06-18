@@ -1,4 +1,4 @@
-// utils/d3Renderer.ts
+// utils/d3RendererCompact.ts
 import * as d3 from 'd3';
 import { NodoTorneo } from '../models/grafos';
 
@@ -8,279 +8,234 @@ export const renderBracket = (
 ): void => {
   if (!svgRef.current || estructura.length === 0) return;
 
-  console.log('🎨 Dibujando árbol por niveles reales con D3');
+  console.log('🎨 Dibujando árbol compacto con D3');
 
   const svg = d3.select(svgRef.current);
   svg.selectAll("*").remove();
 
-  // Calcular dimensiones
+  // Obtener el ancho del contenedor padre (100% de la pantalla)
+  const containerWidth = svgRef.current.parentElement?.clientWidth || window.innerWidth;
+  
+  // Dimensiones adaptativas
   const maxPartidas = Math.max(...estructura.map(ronda => ronda.length));
-  const width = estructura.length * 250 + 100;
-  const height = maxPartidas * 100 + 100;
+  const margin = 20;
+  
+  // Calcular ancho de ronda basado en el espacio disponible
+  const availableWidth = containerWidth - (margin * 2);
+  const rondaWidth = availableWidth / estructura.length;
+  
+  const nodeHeight = 40;
+  const verticalSpacing = 50;
+  
+  const width = containerWidth; // 100% del ancho disponible
+  const height = maxPartidas * verticalSpacing + (margin * 2);
   
   svg.attr("width", width).attr("height", height);
 
-  const rondaWidth = 250;
-  const margin = 50;
-
-  console.log('📊 Estructura final del árbol:', estructura);
+  console.log('📊 Estructura compacta:', estructura);
+  console.log('📐 Ancho contenedor:', containerWidth, 'Ancho por ronda:', rondaWidth);
 
   estructura.forEach((ronda, rondaIndex) => {
     const x = margin + (rondaIndex * rondaWidth);
     const nodosEnRonda = ronda.length;
-    const espacioVertical = Math.max(100, (height - 2 * margin) / nodosEnRonda);
+    const espacioVertical = Math.max(verticalSpacing, (height - 2 * margin) / nodosEnRonda);
 
-    // Título de la ronda
-    const tituloRonda = rondaIndex === 0 ? 'RONDA INICIAL' :
-                       rondaIndex === estructura.length - 1 ? 'GANADOR FINAL' :
-                       rondaIndex === estructura.length - 2 ? 'FINAL' :
-                       nodosEnRonda === 2 ? 'SEMIFINAL' :
-                       nodosEnRonda === 4 ? 'CUARTOS' :
-                       nodosEnRonda === 8 ? 'OCTAVOS' :
-                       `Ronda ${rondaIndex + 1}`;
+    // Título de ronda compacto
+    const tituloRonda = rondaIndex === 0 ? 'R1' :
+                       rondaIndex === estructura.length - 1 ? '🏆' :
+                       rondaIndex === estructura.length - 2 ? 'F' :
+                       nodosEnRonda === 2 ? 'SF' :
+                       nodosEnRonda === 4 ? 'QF' :
+                       nodosEnRonda === 8 ? 'R16' :
+                       `R${rondaIndex + 1}`;
 
     svg.append("text")
       .attr("x", x + rondaWidth / 2)
-      .attr("y", 30)
+      .attr("y", 12)
       .attr("text-anchor", "middle")
-      .style("font-size", "14px")
+      .style("font-size", "11px")
       .style("font-weight", "bold")
       .style("fill", "#1f2937")
       .text(tituloRonda);
 
-    // Subtítulo con nivel (excepto para el ganador final)
-    if (rondaIndex < estructura.length - 1) {
-      svg.append("text")
-        .attr("x", x + rondaWidth / 2)
-        .attr("y", 45)
-        .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .style("fill", "#6b7280")
-        .text(`(Jugadores Nivel ${rondaIndex}+)`);
-    } else {
-      svg.append("text")
-        .attr("x", x + rondaWidth / 2)
-        .attr("y", 45)
-        .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .style("fill", "#dc2626")
-        .text("(Campeón del Torneo)");
-    }
-
     ronda.forEach((nodo, nodoIndex) => {
       const y = margin + (nodoIndex * espacioVertical) + (espacioVertical / 2);
 
-      // Rectángulo del nodo
+      // Rectángulo del nodo ajustado al nuevo ancho
+      const nodeWidth = Math.max(rondaWidth - 40, 80); // Mínimo de 80px
       svg.append("rect")
-        .attr("x", x)
-        .attr("y", y - 40)
-        .attr("width", rondaWidth - 50)
-        .attr("height", 80)
-        .attr("rx", 6)
+        .attr("x", x + (rondaWidth - nodeWidth) / 2) // Centrar el nodo
+        .attr("y", y - nodeHeight/2)
+        .attr("width", nodeWidth)
+        .attr("height", nodeHeight)
+        .attr("rx", 4)
         .style("fill", "#ffffff")
         .style("stroke", "#e5e7eb")
-        .style("stroke-width", 2);
+        .style("stroke-width", 1);
 
-      // Tratamiento especial para el nodo final (ganador absoluto)
+      // Renderizar contenido según tipo de nodo
+      const nodeX = x + (rondaWidth - nodeWidth) / 2;
       if (rondaIndex === estructura.length - 1) {
-        renderFinalNode(svg, nodo, x, y, rondaWidth);
+        renderCompactFinalNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight);
       } else {
-        renderRegularNode(svg, nodo, x, y, rondaWidth, rondaIndex);
+        renderCompactRegularNode(svg, nodo, nodeX, y, nodeWidth, nodeHeight, rondaIndex);
       }
 
-      // ID del nodo (debug)
-      svg.append("text")
-        .attr("x", x + rondaWidth - 45)
-        .attr("y", y - 35)
-        .style("font-size", "9px")
-        .style("fill", "#9ca3af")
-        .text(`${nodoIndex + 1}`);
-
-      // Conexiones hacia la siguiente ronda
+      // Conexiones compactas
       if (rondaIndex < estructura.length - 1) {
-        renderConnections(svg, estructura, rondaIndex, nodoIndex, x, y, rondaWidth, margin, height);
+        renderCompactConnections(svg, estructura, rondaIndex, nodoIndex, x, y, rondaWidth, margin, height, nodeWidth);
       }
     });
   });
 };
 
-const renderFinalNode = (
+const renderCompactFinalNode = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   nodo: NodoTorneo,
   x: number,
   y: number,
-  rondaWidth: number
+  nodeWidth: number,
+  nodeHeight: number
 ): void => {
-  // Solo mostrar el ganador, sin VS
   const ganador = nodo.jugador1 || nodo.jugador2;
   if (ganador) {
-    // Rectángulo especial para el ganador
+    // Fondo dorado para el ganador
     svg.append("rect")
-      .attr("x", x + 10)
-      .attr("y", y - 25)
-      .attr("width", rondaWidth - 60)
-      .attr("height", 50)
-      .attr("rx", 8)
+      .attr("x", x + 2)
+      .attr("y", y - nodeHeight/2 + 2)
+      .attr("width", nodeWidth - 4)
+      .attr("height", nodeHeight - 4)
+      .attr("rx", 4)
       .style("fill", "#fef3c7")
       .style("stroke", "#f59e0b")
-      .style("stroke-width", 3);
+      .style("stroke-width", 2);
 
-    // Corona
+    // Corona y nombre
     svg.append("text")
-      .attr("x", x + rondaWidth / 2 - 25)
-      .attr("y", y - 5)
+      .attr("x", x + nodeWidth/2)
+      .attr("y", y - 2)
       .attr("text-anchor", "middle")
-      .style("font-size", "24px")
+      .style("font-size", "14px")
       .text("👑");
 
-    // Nombre del ganador
+    const maxChars = Math.floor(nodeWidth / 8); // Ajustar caracteres según ancho
     svg.append("text")
-      .attr("x", x + rondaWidth / 2 - 25)
-      .attr("y", y + 15)
+      .attr("x", x + nodeWidth/2)
+      .attr("y", y + 10)
       .attr("text-anchor", "middle")
-      .style("font-size", "14px")
+      .style("font-size", "10px")
       .style("font-weight", "bold")
       .style("fill", "#92400e")
-      .text(`${ganador.nombre}`);
-
-    // Nivel del ganador
-    svg.append("text")
-      .attr("x", x + rondaWidth / 2 - 25)
-      .attr("y", y + 30)
-      .attr("text-anchor", "middle")
-      .style("font-size", "11px")
-      .style("fill", "#92400e")
-      .text(`Nivel ${ganador.nivel}`);
+      .text(truncateName(ganador.nombre, maxChars));
   } else {
-    // Esperando al ganador final
-    svg.append("rect")
-      .attr("x", x + 10)
-      .attr("y", y - 25)
-      .attr("width", rondaWidth - 60)
-      .attr("height", 50)
-      .attr("rx", 8)
-      .style("fill", "#f9fafb")
-      .style("stroke", "#d1d5db")
-      .style("stroke-width", 2)
-      .style("stroke-dasharray", "5,5");
-
     svg.append("text")
-      .attr("x", x + rondaWidth / 2 - 25)
-      .attr("y", y)
+      .attr("x", x + nodeWidth/2)
+      .attr("y", y + 3)
       .attr("text-anchor", "middle")
-      .style("font-size", "14px")
+      .style("font-size", "10px")
       .style("fill", "#9ca3af")
-      .text("Esperando");
-
-    svg.append("text")
-      .attr("x", x + rondaWidth / 2 - 25)
-      .attr("y", y + 15)
-      .attr("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("fill", "#9ca3af")
-      .text("Campeón...");
+      .text("...");
   }
 };
 
-const renderRegularNode = (
+const renderCompactRegularNode = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   nodo: NodoTorneo,
   x: number,
   y: number,
-  rondaWidth: number,
+  nodeWidth: number,
+  nodeHeight: number,
   rondaIndex: number
 ): void => {
-  // Nodos normales de VS
-  // Jugador 1
-  const jugador1Texto = nodo.jugador1 ? 
-    `${nodo.jugador1.nombre} (Nivel ${nodo.jugador1.nivel})` : 
-    "Esperando...";
-  
-  // Determinar si el jugador avanzó (nivel > ronda actual)
-  const jugador1Avanzo = nodo.jugador1 && nodo.jugador1.nivel > rondaIndex;
-  
-  svg.append("rect")
-    .attr("x", x + 5)
-    .attr("y", y - 35)
-    .attr("width", rondaWidth - 60)
-    .attr("height", 20)
-    .attr("rx", 3)
-    .style("fill", nodo.jugador1 ? 
-      (jugador1Avanzo ? "#dcfce7" : "#eff6ff") : "#f9fafb")
-    .style("stroke", nodo.jugador1 ? 
-      (jugador1Avanzo ? "#16a34a" : "#3b82f6") : "#e5e7eb")
-    .style("stroke-width", jugador1Avanzo ? 2 : 1);
+  // Línea divisoria central
+  svg.append("line")
+    .attr("x1", x + 5)
+    .attr("y1", y)
+    .attr("x2", x + nodeWidth - 5)
+    .attr("y2", y)
+    .style("stroke", "#e5e7eb")
+    .style("stroke-width", 1);
 
-  svg.append("text")
-    .attr("x", x + 10)
-    .attr("y", y - 22)
-    .style("font-size", "11px")
-    .style("font-weight", nodo.jugador1 ? "600" : "400")
-    .style("fill", nodo.jugador1 ? 
-      (jugador1Avanzo ? "#15803d" : "#1e40af") : "#9ca3af")
-    .text(jugador1Texto.length > 25 ? jugador1Texto.substring(0, 22) + "..." : jugador1Texto);
+  const maxChars = Math.floor(nodeWidth / 10); // Ajustar caracteres según ancho
 
-  // Indicador de avance para jugador 1
-  if (jugador1Avanzo) {
+  // Jugador 1 (arriba)
+  if (nodo.jugador1) {
+    const avanzo1 = nodo.jugador1.nivel > rondaIndex;
+    
+    if (avanzo1) {
+      svg.append("rect")
+        .attr("x", x + 2)
+        .attr("y", y - nodeHeight/2 + 2)
+        .attr("width", nodeWidth - 4)
+        .attr("height", nodeHeight/2 - 3)
+        .attr("rx", 2)
+        .style("fill", "#dcfce7")
+        .style("stroke", "none");
+    }
+
     svg.append("text")
-      .attr("x", x + rondaWidth - 70)
-      .attr("y", y - 22)
-      .style("font-size", "12px")
-      .style("fill", "#15803d")
-      .text("✓");
+      .attr("x", x + 4)
+      .attr("y", y - 6)
+      .style("font-size", "9px")
+      .style("font-weight", avanzo1 ? "600" : "400")
+      .style("fill", avanzo1 ? "#15803d" : "#1e40af")
+      .text(truncateName(nodo.jugador1.nombre, maxChars));
+
+    svg.append("text")
+      .attr("x", x + nodeWidth - 15)
+      .attr("y", y - 6)
+      .style("font-size", "8px")
+      .style("fill", "#6b7280")
+      .text(`L${nodo.jugador1.nivel}`);
+  } else {
+    svg.append("text")
+      .attr("x", x + 4)
+      .attr("y", y - 6)
+      .style("font-size", "8px")
+      .style("fill", "#9ca3af")
+      .text("---");
   }
 
-  // VS
-  svg.append("text")
-    .attr("x", x + rondaWidth / 2 - 25)
-    .attr("y", y - 5)
-    .attr("text-anchor", "middle")
-    .style("font-size", "12px")
-    .style("font-weight", "bold")
-    .style("fill", "#7c3aed")
-    .text("VS");
+  // Jugador 2 (abajo)
+  if (nodo.jugador2) {
+    const avanzo2 = nodo.jugador2.nivel > rondaIndex;
+    
+    if (avanzo2) {
+      svg.append("rect")
+        .attr("x", x + 2)
+        .attr("y", y + 1)
+        .attr("width", nodeWidth - 4)
+        .attr("height", nodeHeight/2 - 3)
+        .attr("rx", 2)
+        .style("fill", "#dcfce7")
+        .style("stroke", "none");
+    }
 
-  // Jugador 2
-  const jugador2Texto = nodo.jugador2 ? 
-    `${nodo.jugador2.nombre} (Nivel ${nodo.jugador2.nivel})` : 
-    "Esperando...";
-  
-  // Determinar si el jugador avanzó (nivel > ronda actual)
-  const jugador2Avanzo = nodo.jugador2 && nodo.jugador2.nivel > rondaIndex;
-  
-  svg.append("rect")
-    .attr("x", x + 5)
-    .attr("y", y + 15)
-    .attr("width", rondaWidth - 60)
-    .attr("height", 20)
-    .attr("rx", 3)
-    .style("fill", nodo.jugador2 ? 
-      (jugador2Avanzo ? "#dcfce7" : "#eff6ff") : "#f9fafb")
-    .style("stroke", nodo.jugador2 ? 
-      (jugador2Avanzo ? "#16a34a" : "#3b82f6") : "#e5e7eb")
-    .style("stroke-width", jugador2Avanzo ? 2 : 1);
-
-  svg.append("text")
-    .attr("x", x + 10)
-    .attr("y", y + 28)
-    .style("font-size", "11px")
-    .style("font-weight", nodo.jugador2 ? "600" : "400")
-    .style("fill", nodo.jugador2 ? 
-      (jugador2Avanzo ? "#15803d" : "#1e40af") : "#9ca3af")
-    .text(jugador2Texto.length > 25 ? jugador2Texto.substring(0, 22) + "..." : jugador2Texto);
-
-  // Indicador de avance para jugador 2
-  if (jugador2Avanzo) {
     svg.append("text")
-      .attr("x", x + rondaWidth - 70)
-      .attr("y", y + 28)
-      .style("font-size", "12px")
-      .style("fill", "#15803d")
-      .text("✓");
+      .attr("x", x + 4)
+      .attr("y", y + 12)
+      .style("font-size", "9px")
+      .style("font-weight", avanzo2 ? "600" : "400")
+      .style("fill", avanzo2 ? "#15803d" : "#1e40af")
+      .text(truncateName(nodo.jugador2.nombre, maxChars));
+
+    svg.append("text")
+      .attr("x", x + nodeWidth - 15)
+      .attr("y", y + 12)
+      .style("font-size", "8px")
+      .style("fill", "#6b7280")
+      .text(`L${nodo.jugador2.nivel}`);
+  } else {
+    svg.append("text")
+      .attr("x", x + 4)
+      .attr("y", y + 12)
+      .style("font-size", "8px")
+      .style("fill", "#9ca3af")
+      .text("---");
   }
 };
 
-const renderConnections = (
+const renderCompactConnections = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   estructura: NodoTorneo[][],
   rondaIndex: number,
@@ -289,47 +244,63 @@ const renderConnections = (
   y: number,
   rondaWidth: number,
   margin: number,
-  height: number
+  height: number,
+  nodeWidth: number
 ): void => {
   const siguienteRonda = estructura[rondaIndex + 1];
   const targetNodoIndex = Math.floor(nodoIndex / 2);
   
   if (targetNodoIndex < siguienteRonda.length) {
     const nextX = x + rondaWidth;
-    const nextEspacioVertical = Math.max(100, (height - 2 * margin) / siguienteRonda.length);
+    const nextEspacioVertical = Math.max(50, (height - 2 * margin) / siguienteRonda.length);
     const targetY = margin + (targetNodoIndex * nextEspacioVertical) + (nextEspacioVertical / 2);
+
+    // Calcular posición del borde del nodo actual
+    const nodeRightEdge = x + (rondaWidth - nodeWidth) / 2 + nodeWidth;
+    const connectionLength = rondaWidth - nodeWidth - 20; // Espacio para conexión
 
     // Línea horizontal
     svg.append("line")
-      .attr("x1", x + rondaWidth - 50)
+      .attr("x1", nodeRightEdge)
       .attr("y1", y)
-      .attr("x2", nextX - 25)
+      .attr("x2", nodeRightEdge + connectionLength / 2)
       .attr("y2", y)
-      .style("stroke", "#6b7280")
-      .style("stroke-width", 2);
+      .style("stroke", "#d1d5db")
+      .style("stroke-width", 1);
 
     // Conexión en pares
     if (nodoIndex % 2 === 1) {
-      const espacioVertical = Math.max(100, (height - 2 * margin) / estructura[rondaIndex].length);
+      const espacioVertical = Math.max(50, (height - 2 * margin) / estructura[rondaIndex].length);
       const prevY = margin + ((nodoIndex - 1) * espacioVertical) + (espacioVertical / 2);
+      
+      const connectionX = nodeRightEdge + connectionLength / 2;
       
       // Línea vertical
       svg.append("line")
-        .attr("x1", nextX - 25)
+        .attr("x1", connectionX)
         .attr("y1", prevY)
-        .attr("x2", nextX - 25)
+        .attr("x2", connectionX)
         .attr("y2", y)
-        .style("stroke", "#6b7280")
-        .style("stroke-width", 2);
+        .style("stroke", "#d1d5db")
+        .style("stroke-width", 1);
 
       // Línea hacia el siguiente nodo
+      const nextNodeWidth = Math.max(rondaWidth - 40, 80);
+      const nextNodeX = nextX + (rondaWidth - nextNodeWidth) / 2;
+      
       svg.append("line")
-        .attr("x1", nextX - 25)
+        .attr("x1", connectionX)
         .attr("y1", (prevY + y) / 2)
-        .attr("x2", nextX)
+        .attr("x2", nextNodeX)
         .attr("y2", targetY)
-        .style("stroke", "#6b7280")
-        .style("stroke-width", 2);
+        .style("stroke", "#d1d5db")
+        .style("stroke-width", 1);
     }
   }
+};
+
+// Función auxiliar para truncar nombres largos
+const truncateName = (name: string, maxLength: number): string => {
+  if (name.length <= maxLength) return name;
+  return name.substring(0, maxLength - 2) + '..';
 };
