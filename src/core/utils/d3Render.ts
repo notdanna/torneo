@@ -100,7 +100,6 @@ export const renderBracket = (
   
   // Calcular el factor de crecimiento exponencial
   // Más sutil al principio, más pronunciado cuando quedan pocas rondas
-  const hiddenRounds = totalRoundsInTournament - numRondas;
   const visibilityRatio = numRondas / totalRoundsInTournament;
   
   // Factor de crecimiento exponencial: crece más rápido cuando quedan menos rondas
@@ -109,7 +108,6 @@ export const renderBracket = (
   // Tamaños base que escalan con el factor de crecimiento
   const baseNodeWidth = 110 * growthFactor;
   const baseNodeHeight = 45 * growthFactor;
-  const baseFontSize = 9 * growthFactor;
   
   // Factor de compresión del espacio vertical (inverso al crecimiento)
   // Cuando hay menos rondas, menos espacio entre nodos
@@ -149,7 +147,6 @@ export const renderBracket = (
   for (let i = 1; i < estructura.length; i++) {
     // Factor adicional de escalado por profundidad de ronda
     const depthFactor = 1 + (i / numRondas) * 0.3;
-    const scaleFactor = growthFactor * depthFactor;
     
     // Tamaños con límites prudentes para mantener legibilidad
     const nodeHeight = Math.min(
@@ -221,7 +218,7 @@ export const renderBracket = (
       if (rondaIndex === estructura.length - 1) {
         renderCompactFinalNode(svg, nodo, x, y, width, height, textScaleFactor);
       } else {
-        renderCompactRegularNode(svg, nodo, x, y, width, height, rondaOriginalIndex, textScaleFactor, baseFontSize);
+        renderCompactRegularNode(svg, nodo, x, y, width, height, rondaOriginalIndex, textScaleFactor);
       }
     });
   });
@@ -276,7 +273,6 @@ const renderCompactRegularNode = (
   nodeWidth: number,
   nodeHeight: number,
   rondaOriginalIndex: number,
-  scaleFactor: number,
   baseFontSize: number
 ): void => {
     svg.append("line")
