@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import SearchPage from '../../features/pages/SearchPage/SearchPage';
 import DataJuegos from '../../features/pages/DataJuegos/VisualizacionJuegos';
-import BracketTiempoReal from '../../features/pages/GrafoTorneo/BracketTiempoReal';
+import BracketTiempoReal from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_1';
 import AdministrarGrupoJuego from '../../features/pages/admin/Admin';
 import LayoutJuegos from '../../features/pages/DataJuegos/LayoutJuegos';
 

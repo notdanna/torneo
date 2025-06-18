@@ -3,9 +3,6 @@
 import * as d3 from 'd3';
 import { NodoTorneo, Jugador } from '../models/grafos';
 
-// Las funciones auxiliares (renderWinnerNode, etc.) no necesitan cambios.
-// Todo el ajuste se realiza en la función principal renderBracket.
-
 const renderWinnerNode = (
     svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
     nodo: NodoTorneo,
@@ -87,47 +84,82 @@ export const renderBracket = (
 
   const margin = { top: 20, right: 20, bottom: 20, left: 20 };
   const width = containerWidth;
-  const height = containerHeight; // Límite estricto
+  const height = containerHeight;
 
   const nodeCalculations: { x: number; y: number; width: number; height: number }[][] = Array(estructura.length).fill(0).map(() => []);
   
   const numRondas = estructura.length;
   const rondaWidth = (width - margin.left - margin.right) / numRondas;
-  const baseNodeWidth = 110;
+  
+  // --- LÓGICA DE CRECIMIENTO DINÁMICO ---
+  
+  // Calcular el total de rondas originales del torneo
+  const totalRoundsInTournament = rondasVisibles 
+    ? Math.max(...rondasVisibles) + 1 
+    : numRondas;
+  
+  // Calcular el factor de crecimiento exponencial
+  // Más sutil al principio, más pronunciado cuando quedan pocas rondas
+  const hiddenRounds = totalRoundsInTournament - numRondas;
+  const visibilityRatio = numRondas / totalRoundsInTournament;
+  
+  // Factor de crecimiento exponencial: crece más rápido cuando quedan menos rondas
+  const growthFactor = Math.pow(2 - visibilityRatio, 1.5);
+  
+  // Tamaños base que escalan con el factor de crecimiento
+  const baseNodeWidth = 110 * growthFactor;
+  const baseNodeHeight = 45 * growthFactor;
+  const baseFontSize = 9 * growthFactor;
+  
+  // Factor de compresión del espacio vertical (inverso al crecimiento)
+  // Cuando hay menos rondas, menos espacio entre nodos
+  const verticalSpacingFactor = 0.8 + (0.2 * visibilityRatio);
 
-  // --- INICIO DE LA LÓGICA CORREGIDA ---
-
-  // 1. Escala de visibilidad moderada
-  const totalRoundsInTournament = Math.log2(estructura[0].length * 2) || numRondas;
-  const visibilityScale = Math.max(1, (totalRoundsInTournament / numRondas));
-
-  // 2. Cálculo de la primera ronda, restringido por la altura del contenedor
+  // 1. Cálculo de la primera ronda con crecimiento dinámico
   if (estructura.length > 0) {
     const firstRonda = estructura[0];
     const nodosEnRonda = firstRonda.length;
 
-    // El espacio vertical disponible por nodo es el límite principal
-    const espacioVertical = (height - margin.top - margin.bottom) / nodosEnRonda;
+    // Espacio vertical disponible con factor de compresión
+    const espacioVertical = ((height - margin.top - margin.bottom) / nodosEnRonda) * verticalSpacingFactor;
 
-    // La altura del nodo es un 80% del espacio disponible, con un tamaño base que escala moderadamente
-    const nodeHeight = Math.min(espacioVertical * 0.8, 45 * visibilityScale);
-    const nodeWidth = Math.min(rondaWidth - 20, baseNodeWidth * visibilityScale);
+    // La altura del nodo crece con el factor de crecimiento, limitada por el espacio disponible
+    const nodeHeight = Math.min(
+      espacioVertical * 0.85, // Un poco más de margen para evitar solapamiento
+      baseNodeHeight
+    );
+    
+    // El ancho también crece proporcionalmente
+    const nodeWidth = Math.min(
+      rondaWidth - 20, 
+      baseNodeWidth
+    );
 
     firstRonda.forEach((_, nodoIndex) => {
-      // Distribuir nodos uniformemente en el espacio disponible
-      const y = margin.top + (nodoIndex * espacioVertical) + (espacioVertical / 2);
+      // Centrar verticalmente los nodos en el espacio disponible
+      const totalUsedHeight = nodosEnRonda * espacioVertical;
+      const startY = margin.top + (height - margin.top - margin.bottom - totalUsedHeight) / 2;
+      const y = startY + (nodoIndex * espacioVertical) + (espacioVertical / 2);
       const x = margin.left + (rondaWidth - nodeWidth) / 2;
       nodeCalculations[0][nodoIndex] = { x, y, width: nodeWidth, height: nodeHeight };
     });
   }
 
-  // 3. Cálculo de rondas subsecuentes con topes de tamaño
+  // 2. Cálculo de rondas subsecuentes con escalado progresivo
   for (let i = 1; i < estructura.length; i++) {
-    const scaleFactor = visibilityScale * (1 + i * 0.15); // Escalado por ronda moderado
+    // Factor adicional de escalado por profundidad de ronda
+    const depthFactor = 1 + (i / numRondas) * 0.3;
+    const scaleFactor = growthFactor * depthFactor;
     
-    // Se añade un tope máximo al tamaño para evitar que los nodos finales sean excesivamente grandes
-    const nodeHeight = Math.min(90, 45 * scaleFactor); 
-    const nodeWidth = Math.min(rondaWidth - 20, baseNodeWidth * scaleFactor);
+    // Tamaños con límites prudentes para mantener legibilidad
+    const nodeHeight = Math.min(
+      height * 0.4, // Máximo 40% de la altura del contenedor
+      baseNodeHeight * depthFactor
+    );
+    const nodeWidth = Math.min(
+      rondaWidth - 20, 
+      baseNodeWidth * depthFactor
+    );
 
     estructura[i].forEach((_, nodoIndex) => {
       const parent1 = nodeCalculations[i - 1][nodoIndex * 2];
@@ -146,9 +178,8 @@ export const renderBracket = (
       nodeCalculations[i][nodoIndex] = { x, y, width: nodeWidth, height: nodeHeight };
     });
   }
-  // --- FIN DE LA LÓGICA CORREGIDA ---
 
-  // El resto del código (dibujado) permanece igual
+  // --- DIBUJO DE CONEXIONES ---
   for (let i = 0; i < nodeCalculations.length - 1; i++) {
     for (let j = 0; j < nodeCalculations[i].length; j++) {
       if (j % 2 === 1) { 
@@ -168,10 +199,13 @@ export const renderBracket = (
     }
   }
 
+  // --- DIBUJO DE NODOS ---
   estructura.forEach((ronda, rondaIndex) => {
     ronda.forEach((nodo, nodoIndex) => {
       const { x, y, width, height } = nodeCalculations[rondaIndex][nodoIndex];
-      const scaleFactor = visibilityScale * (1 + rondaIndex * 0.15);
+      
+      // Factor de escala para el texto basado en el crecimiento
+      const textScaleFactor = growthFactor * (1 + rondaIndex * 0.15);
 
       svg.append("rect")
         .attr("x", x)
@@ -185,9 +219,9 @@ export const renderBracket = (
 
       const rondaOriginalIndex = rondasVisibles ? rondasVisibles[rondaIndex] : rondaIndex;
       if (rondaIndex === estructura.length - 1) {
-        renderCompactFinalNode(svg, nodo, x, y, width, height, scaleFactor);
+        renderCompactFinalNode(svg, nodo, x, y, width, height, textScaleFactor);
       } else {
-        renderCompactRegularNode(svg, nodo, x, y, width, height, rondaOriginalIndex, scaleFactor);
+        renderCompactRegularNode(svg, nodo, x, y, width, height, rondaOriginalIndex, textScaleFactor, baseFontSize);
       }
     });
   });
@@ -242,15 +276,17 @@ const renderCompactRegularNode = (
   nodeWidth: number,
   nodeHeight: number,
   rondaOriginalIndex: number,
-  scaleFactor: number
+  scaleFactor: number,
+  baseFontSize: number
 ): void => {
     svg.append("line")
         .attr("x1", x + 5).attr("y1", y)
         .attr("x2", x + nodeWidth - 5).attr("y2", y)
         .style("stroke", "#e5e7eb").style("stroke-width", 1);
     
-    const baseFontSize = Math.min(9 * scaleFactor, nodeHeight * 0.25);
-    const maxChars = Math.floor(nodeWidth / (baseFontSize * 0.7));
+    // Tamaño de fuente escalado dinámicamente
+    const fontSize = Math.min(baseFontSize, nodeHeight * 0.25);
+    const maxChars = Math.floor(nodeWidth / (fontSize * 0.7));
 
     const jugador1 = nodo.jugador1 as (Jugador & { nombreAcompanante?: string }) | null;
     if (jugador1) {
@@ -263,16 +299,16 @@ const renderCompactRegularNode = (
         }
         svg.append("text")
             .attr("x", x + 4).attr("y", y - nodeHeight * 0.25 + 2)
-            .style("font-size", `${baseFontSize}px`).style("font-weight", avanzo1 ? "600" : "400").style("fill", avanzo1 ? "#15803d" : "#1e40af")
+            .style("font-size", `${fontSize}px`).style("font-weight", avanzo1 ? "600" : "400").style("fill", avanzo1 ? "#15803d" : "#1e40af")
             .text(truncateName(jugador1.nombre, maxChars));
         if (jugador1.nombreAcompanante) {
             svg.append("text")
                 .attr("x", x + 4).attr("y", y - nodeHeight * 0.05 + 2)
-                .style("font-size", `${baseFontSize * 0.9}px`).style("fill", "#4b5563")
+                .style("font-size", `${fontSize * 0.9}px`).style("fill", "#4b5563")
                 .text(truncateName(`+ ${jugador1.nombreAcompanante}`, maxChars));
         }
     } else {
-        svg.append("text").attr("x", x + 4).attr("y", y - 6).style("font-size", `${8 * scaleFactor}px`).style("fill", "#9ca3af").text("---");
+        svg.append("text").attr("x", x + 4).attr("y", y - 6).style("font-size", `${fontSize * 0.9}px`).style("fill", "#9ca3af").text("---");
     }
 
     const jugador2 = nodo.jugador2 as (Jugador & { nombreAcompanante?: string }) | null;
@@ -286,16 +322,16 @@ const renderCompactRegularNode = (
         }
         svg.append("text")
             .attr("x", x + 4).attr("y", y + nodeHeight * 0.25 - 2)
-            .style("font-size", `${baseFontSize}px`).style("font-weight", avanzo2 ? "600" : "400").style("fill", avanzo2 ? "#15803d" : "#1e40af")
+            .style("font-size", `${fontSize}px`).style("font-weight", avanzo2 ? "600" : "400").style("fill", avanzo2 ? "#15803d" : "#1e40af")
             .text(truncateName(jugador2.nombre, maxChars));
         if (jugador2.nombreAcompanante) {
             svg.append("text")
                 .attr("x", x + 4).attr("y", y + nodeHeight * 0.45 - 2)
-                .style("font-size", `${baseFontSize * 0.9}px`).style("fill", "#4b5563")
+                .style("font-size", `${fontSize * 0.9}px`).style("fill", "#4b5563")
                 .text(truncateName(`+ ${jugador2.nombreAcompanante}`, maxChars));
         }
     } else {
-        svg.append("text").attr("x", x + 4).attr("y", y + 12).style("font-size", `${8 * scaleFactor}px`).style("fill", "#9ca3af").text("---");
+        svg.append("text").attr("x", x + 4).attr("y", y + 12).style("font-size", `${fontSize * 0.9}px`).style("fill", "#9ca3af").text("---");
     }
 };
 

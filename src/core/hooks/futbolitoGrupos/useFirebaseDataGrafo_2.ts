@@ -1,8 +1,8 @@
 // hooks/useFirebaseData.ts
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc } from 'firebase/firestore';
-import { db } from '../../../src/firebase';
-import { Partida } from '../models/grafos';
+import { db } from '../../../firebase';
+import { Partida } from '../../models/grafos';
 
 interface UseFirebaseDataReturn {
   partidas: Partida[];
@@ -67,7 +67,7 @@ export const useFirebaseData = (): UseFirebaseDataReturn => {
   useEffect(() => {
     console.log('🔥 Conectando a Firebase - Árbol por Niveles');
     
-    const partidasRef = collection(db, 'torneo', '1', 'juego', '1', 'grupos', '1', 'partidas');
+    const partidasRef = collection(db, 'torneo', '1', 'juego', '1', 'grupos', '2', 'partidas');
     
     const unsubscribe = onSnapshot(
       partidasRef,
