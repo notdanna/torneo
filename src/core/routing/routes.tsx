@@ -16,6 +16,9 @@ import BracketTiempoReal41 from '../../features/pages/GrafoTorneo/beerpongBracke
 import BracketTiempoReal42 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_2';
 import BracketTiempoReal43 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_3';
 
+
+import { TorneoContainer } from '../../features/pages/GrafoTorneo/futbolitoBracket/TorneoContainer.tsx';
+
 import AdministrarGrupoJuego from '../../features/pages/admin/Admin';
 import LayoutJuegos from '../../features/pages/DataJuegos/LayoutJuegos';
 
@@ -63,6 +66,9 @@ export const AppRoutes = () => {
       <Route path="/bracket_41" element={<BracketTiempoReal41 />} />
       <Route path="/bracket_42" element={<BracketTiempoReal42 />} />
       <Route path="/bracket_43" element={<BracketTiempoReal43 />} />
+
+      {/* Ruta para el torneo completo */}
+      <Route path="/torneo_11" element={<TorneoContainer />} />
 
     </Routes>
   );
