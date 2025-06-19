@@ -39,7 +39,7 @@ interface UseTorneoCompletoReturn {
 }
 
 export const useTorneoCompleto = (): UseTorneoCompletoReturn => {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [, setRefreshTrigger] = useState(0);
   
   // Hooks para datos del torneo y ganadores
   const {

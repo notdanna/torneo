@@ -21,7 +21,7 @@ export const useValidacionDuplicados = () => {
     try {
       const resultado = await ValidacionDuplicadosService.validarJugadorDuplicado(
         criterios,
-        jugadorEditandoId
+        Number(jugadorEditandoId)
       );
       
       console.log('📊 Resultado de validación:', resultado);

@@ -1,97 +1,98 @@
-import { doc, getDoc, updateDoc, collection, getDocs, setDoc, runTransaction } from 'firebase/firestore'; // Import runTransaction
+import { doc, getDoc,  collection, getDocs, runTransaction, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../../firebase'; 
 
 export interface JugadorFirebase {
-    id: number; // ✨ CHANGE: ID is now a number
+    id_jugador: number;
     nombre: string;
     nombreAcompanante?: string;
     empresa: string;
     empresaAcompanante?: string;
     nivel: number;
     activo: boolean;
-    fechaCreacion?: string;
-    fechaActualizacion?: string;
-    // Agrega más campos según tu estructura
 }
 
 // Reference to the 'jugadores' collection
 const jugadoresCollection = collection(db, 'jugadores');
 
-// Reference to the counter document for players
-const jugadorCounterRef = doc(db, 'counters', 'jugadorId'); // ✨ NEW: Document to store the last player ID
-
-// --- ✨ NEW FUNCTION: Get the next sequential player ID using a transaction ---
-async function getNextJugadorSequentialId(): Promise<number> {
+// ✨ NUEVA FUNCIÓN: Obtener el siguiente ID basado en la colección jugadores
+async function getNextJugadorId(): Promise<number> {
     try {
-        const nextId = await runTransaction(db, async (transaction) => {
-            const counterDoc = await transaction.get(jugadorCounterRef);
-            let newId: number;
-
-            if (counterDoc.exists()) {
-                const currentId = counterDoc.data().lastId;
-                newId = currentId + 1;
-            } else {
-                // If the counter document doesn't exist, start from 1
-                newId = 1;
-            }
-            transaction.set(jugadorCounterRef, { lastId: newId });
-            return newId;
-        });
-        return nextId;
+        // Consulta para obtener el jugador con el ID más alto
+        const q = query(
+            jugadoresCollection, 
+            orderBy('id_jugador', 'desc'), 
+            limit(1)
+        );
+        
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            // Si no hay jugadores, empezar desde 1
+            return 1;
+        }
+        
+        // Obtener el ID más alto y sumarle 1
+        const lastJugador = snapshot.docs[0].data() as JugadorFirebase;
+        return lastJugador.id_jugador + 1;
+        
     } catch (error) {
-        console.error("❌ Error getting next sequential ID:", error);
+        console.error("❌ Error obteniendo siguiente ID:", error);
         throw new Error(`Failed to get next ID: ${error}`);
     }
 }
 
-// ✅ MODIFIED FUNCTION: Crear un nuevo jugador con ID secuencial numérico
+// ✅ FUNCIÓN MODIFICADA: Crear jugador con ID secuencial
 export const crearJugador = async (
-    datos: Omit<JugadorFirebase, 'id' | 'fechaCreacion' | 'fechaActualizacion'>
+    datos: Omit<JugadorFirebase, 'id_jugador'>
 ): Promise<JugadorFirebase> => {
     try {
-        console.log('🔥 Creando nuevo jugador en Firebase con ID secuencial:', datos);
+        console.log('🔥 Creando nuevo jugador en Firebase:', datos);
 
-        const nuevoId = await getNextJugadorSequentialId(); // ✨ Get the next numeric ID
+        // Usar transacción para asegurar que no haya conflictos de ID
+        const nuevoJugador = await runTransaction(db, async (transaction) => {
+            // Obtener el siguiente ID disponible
+            const nuevoId = await getNextJugadorId();
+            
 
-        const ahora = new Date().toISOString();
+            const datosCompletos = {
+                ...datos,
+                id_jugador: nuevoId,
+                activo: datos.activo !== undefined ? datos.activo : true,
+                nivel: datos.nivel || 0,
+            };
 
-        const datosCompletos = {
-            ...datos,
-            id: nuevoId, // ✨ Assign the numeric ID here
-            fechaCreacion: ahora,
-            fechaActualizacion: ahora,
-            activo: datos.activo !== undefined ? datos.activo : true,
-            nivel: datos.nivel || 0,
-        };
+            // Verificar que el documento no existe (por seguridad)
+            const jugadorRef = doc(jugadoresCollection, String(nuevoId));
+            const jugadorExistente = await transaction.get(jugadorRef);
+            
+            if (jugadorExistente.exists()) {
+                throw new Error(`El jugador con ID ${nuevoId} ya existe`);
+            }
 
-        // Use setDoc to explicitly set the document ID to the new numeric ID (as a string)
-        // This makes the Firestore document ID match your sequential numeric ID
-        await setDoc(doc(jugadoresCollection, String(nuevoId)), datosCompletos); 
+            // Crear el nuevo jugador
+            transaction.set(jugadorRef, datosCompletos);
+            
+            return datosCompletos as JugadorFirebase;
+        });
 
-        console.log('✅ Jugador creado con ID secuencial:', nuevoId);
+        console.log('✅ Jugador creado con ID:', nuevoJugador.id_jugador);
+        return nuevoJugador;
 
-        return datosCompletos as JugadorFirebase; // Return the complete object
     } catch (error) {
         console.error('❌ Error creando jugador:', error);
         throw new Error(`Error al crear el jugador: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
 };
 
-// ✅ DEPRECATED/REMOVED: crearJugadorConId is now redundant if you only use sequential IDs.
-// If you still need to set arbitrary string IDs sometimes, keep it, but it conflicts
-// with the "sequential numeric ID" requirement.
-// export const crearJugadorConId = async (...) => { /* ... */ };
-
-// ✅ MODIFIED FUNCTION: Obtener un jugador por ID
-export const obtenerJugadorPorId = async (id: number): Promise<JugadorFirebase | null> => { // ✨ CHANGE: ID is now number
+// ✅ Obtener un jugador por ID
+export const obtenerJugadorPorId = async (id: number): Promise<JugadorFirebase | null> => {
     try {
-        // Firestore document IDs are always strings, so convert the number back to string
         const jugadorRef = doc(db, 'jugadores', String(id)); 
         const jugadorSnap = await getDoc(jugadorRef);
 
         if (jugadorSnap.exists()) {
             return {
-                id: Number(jugadorSnap.id), // ✨ Convert ID back to number when reading
+                id_jugador: Number(jugadorSnap.id),
                 ...jugadorSnap.data()
             } as JugadorFirebase;
         } else {
@@ -103,13 +104,11 @@ export const obtenerJugadorPorId = async (id: number): Promise<JugadorFirebase |
     }
 };
 
-// ✅ MODIFIED FUNCTION: Actualizar un jugador
+// ✅ Actualizar un jugador
 export const actualizarJugador = async (
-    id: number, // ✨ CHANGE: ID is now a number
-    datos: Partial<Omit<JugadorFirebase, 'id' | 'fechaCreacion'>>
+    id: number,
 ): Promise<void> => {
     try {
-        // Firestore document IDs are always strings, so convert the number back to string
         const jugadorRef = doc(db, 'jugadores', String(id)); 
 
         // Verificar que el jugador existe antes de actualizar
@@ -118,11 +117,7 @@ export const actualizarJugador = async (
             throw new Error(`Jugador con ID ${id} no encontrado`);
         }
 
-        // Actualizar los datos
-        await updateDoc(jugadorRef, {
-            ...datos,
-            fechaActualizacion: new Date().toISOString()
-        });
+      
 
         console.log(`✅ Jugador ${id} actualizado exitosamente`);
 
@@ -132,14 +127,14 @@ export const actualizarJugador = async (
     }
 };
 
-// ✅ MODIFIED FUNCTION: Obtener todos los jugadores
+// ✅ Obtener todos los jugadores
 export const obtenerTodosLosJugadores = async (): Promise<JugadorFirebase[]> => {
     try {
         const jugadoresRef = collection(db, 'jugadores');
         const snapshot = await getDocs(jugadoresRef);
 
         return snapshot.docs.map(doc => ({
-            id: Number(doc.id), // ✨ Convert ID back to number when reading
+            id_jugador: Number(doc.id),
             ...doc.data()
         })) as JugadorFirebase[];
     } catch (error) {
@@ -148,7 +143,7 @@ export const obtenerTodosLosJugadores = async (): Promise<JugadorFirebase[]> => 
     }
 };
 
-// ✅ No changes needed for validarDatosJugador
+// ✅ Validar datos del jugador
 export const validarDatosJugador = (datos: Partial<JugadorFirebase>): string[] => {
     const errores: string[] = [];
 
@@ -172,7 +167,7 @@ export const validarDatosJugador = (datos: Partial<JugadorFirebase>): string[] =
     return errores;
 };
 
-// ✅ No changes needed for buscarJugadoresPorNombre (it filters locally)
+// ✅ Buscar jugadores por nombre
 export const buscarJugadoresPorNombre = async (termino: string): Promise<JugadorFirebase[]> => {
     try {
         const todosLosJugadores = await obtenerTodosLosJugadores();

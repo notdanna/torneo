@@ -3,7 +3,6 @@ import { FormularioJugadorProps, PasoWizard } from '../../../../core/models/form
 import { useWizardNavigation } from '../../../../core/hooks/formulario/useNavigation';
 import { useFormularioJugador } from '../../../../core/hooks/formulario/useFormularioJugador';
 import { useJugadorWorkflow } from '../../../../core/hooks/formulario/useJugadorWorkFlow';
-
 // Componentes
 import IndicadorProgreso from './IndicadorProgreso.tsx';
 import PasoDatosPareja from './PasoDatosPareja.tsx';
@@ -21,32 +20,58 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = (props) => {
     modoEdicion = false,
     onJugadorAgregado
   } = props;
-
+  
   // Hooks personalizados
   const wizard = useWizardNavigation();
   const formulario = useFormularioJugador({ nombreInicial, jugadorParaEditar, modoEdicion });
+  
+  // 🔍 VERIFICACIÓN RÁPIDA jugadorCreado ANTES DEL HOOK:
+  console.log('🔍 VERIFICACIÓN RÁPIDA jugadorCreado:');
+  console.log('- wizard.pasoActual:', wizard.pasoActual);
+  console.log('- formulario.jugadorCreado:', formulario.jugadorCreado);
+  console.log('- formulario.jugadorCreado?.id_jugador:', formulario.jugadorCreado?.id_jugador);
+  console.log('- typeof formulario.jugadorCreado?.id_jugador:', typeof formulario.jugadorCreado?.id_jugador);
+  console.log('- formulario.jugadorCreado?.id_jugador === "":', formulario.jugadorCreado?.id_jugador === "");
+  console.log('- formulario.jugadorCreado?.id_jugador === null:', formulario.jugadorCreado?.id_jugador === null);
+  console.log('- formulario.jugadorCreado?.id_jugador === undefined:', formulario.jugadorCreado?.id_jugador === undefined);
+  console.log('- JSON.stringify(formulario.jugadorCreado):', JSON.stringify(formulario.jugadorCreado));
+  
   const workflow = useJugadorWorkflow(wizard.pasoActual, formulario.jugadorCreado, onJugadorAgregado);
+
+  // 🔍 VERIFICACIÓN DESPUÉS DEL HOOK:
+  console.log('🔍 ESTADO DESPUÉS DE INICIALIZAR WORKFLOW:');
+  console.log('- workflow.juegoSeleccionado:', workflow.juegoSeleccionado);
+  console.log('- workflow.error:', workflow.error);
 
   // Manejadores de pasos con validación de duplicados
   const handleConfirmarPaso1 = async () => {
-    console.log('🚀 Iniciando confirmación paso 1');
+    console.log('🚀 EJECUTANDO handleConfirmarPaso1');
+    console.log('- formulario.jugadorCreado ANTES de guardar:', formulario.jugadorCreado);
+    
     const success = await formulario.guardarJugador();
+    console.log('- success:', success);
+    console.log('- formulario.jugadorCreado DESPUÉS de guardar:', formulario.jugadorCreado);
+    
     if (success) {
-      console.log('✅ Paso 1 completado, avanzando...');
       setTimeout(() => {
         wizard.irAlSiguientePaso();
         formulario.setSuccess(null);
       }, 1500);
     } else {
-      console.log('❌ Paso 1 falló, permaneciendo en el paso');
     }
   };
 
   const handleConfirmarPaso2 = async () => {
-    console.log('🚀 Iniciando confirmación paso 2');
+    console.log('🚀 EJECUTANDO handleConfirmarPaso2');
+    console.log('- wizard.pasoActual:', wizard.pasoActual);
+    console.log('- formulario.jugadorCreado:', formulario.jugadorCreado);
+    console.log('- formulario.jugadorCreado?.id_jugador:', formulario.jugadorCreado?.id_jugador);
+    console.log('- workflow.juegoSeleccionado:', workflow.juegoSeleccionado);
+    
     const success = await workflow.confirmarPaso2();
+    console.log('- Resultado de workflow.confirmarPaso2():', success);
+    
     if (success) {
-      console.log('✅ Paso 2 completado, avanzando...');
       setTimeout(() => {
         wizard.irAlSiguientePaso();
         workflow.setSuccess(null);
@@ -55,12 +80,11 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = (props) => {
   };
 
   const handleConfirmarPaso3 = async () => {
-    console.log('🚀 Iniciando confirmación paso 3');
+    console.log('🚀 EJECUTANDO handleConfirmarPaso3');
     await workflow.confirmarPaso3();
   };
 
   const handleCancelar = () => {
-    console.log('❌ Cancelando formulario');
     formulario.resetForm();
     workflow.resetWorkflow();
     wizard.reiniciarWizard();
@@ -76,11 +100,14 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = (props) => {
     console.log('📊 Estado actual del formulario:', {
       paso: wizard.pasoActual,
       jugadorCreado: !!formulario.jugadorCreado,
+      jugadorCreadoId: formulario.jugadorCreado?.id_jugador,
       validando: formulario.validando,
       mostrandoAlerta: formulario.mostrarAlertaDuplicados,
       similares: formulario.jugadoresSimilares.length,
       error: formulario.error,
-      success: formulario.success
+      success: formulario.success,
+      workflowError: workflow.error,
+      juegoSeleccionado: workflow.juegoSeleccionado
     });
   }, [
     wizard.pasoActual,
@@ -89,7 +116,9 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = (props) => {
     formulario.mostrarAlertaDuplicados,
     formulario.jugadoresSimilares.length,
     formulario.error,
-    formulario.success
+    formulario.success,
+    workflow.error,
+    workflow.juegoSeleccionado
   ]);
 
   return (
@@ -169,112 +198,6 @@ const FormularioJugador: React.FC<FormularioJugadorProps> = (props) => {
             {...sharedStepProps}
           />
         )}
-      </div>
-
-      {/* Botón de debug temporal */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="debug-controls" style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999 }}>
-          <button
-            onClick={async () => {
-              console.log('🧪 INICIANDO TEST DE DUPLICADOS');
-              const testResult = await formulario.validarDuplicados();
-              console.log('🧪 Resultado del test:', testResult);
-              alert(`Test resultado: ${testResult ? 'Válido' : 'Duplicado detectado'}`);
-            }}
-            style={{
-              background: '#e74c3c',
-              color: 'white',
-              padding: '10px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
-          >
-            🧪 TEST DUPLICADOS
-          </button>
-        </div>
-      )}
-
-      {/* Información de depuración (solo en desarrollo) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="debug-info" style={{ marginTop: '20px', padding: '10px', background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '5px' }}>
-          <details>
-            <summary>🔧 Info de depuración</summary>
-            <div className="debug-content">
-              <div className="debug-section">
-                <h6>Estado del Wizard:</h6>
-                <p><strong>Paso actual:</strong> {wizard.pasoActual}</p>
-                <p><strong>Modo edición:</strong> {modoEdicion ? 'Sí' : 'No'}</p>
-              </div>
-              
-              <div className="debug-section">
-                <h6>Estado del Formulario:</h6>
-                <p><strong>Jugador creado:</strong> {formulario.jugadorCreado ? `Sí (ID: ${formulario.jugadorCreado.id})` : 'No'}</p>
-                <p><strong>Validando duplicados:</strong> {formulario.validando ? 'Sí' : 'No'}</p>
-                <p><strong>Similares encontrados:</strong> {formulario.jugadoresSimilares.length}</p>
-                <p><strong>Mostrando alerta:</strong> {formulario.mostrarAlertaDuplicados ? 'Sí' : 'No'}</p>
-                <p><strong>Error:</strong> {formulario.error || 'Ninguno'}</p>
-                <p><strong>Datos actuales:</strong> {JSON.stringify({
-                  nombre: formulario.formData.nombre,
-                  empresa: formulario.formData.empresa,
-                  acompanante: formulario.formData.nombreAcompanante
-                })}</p>
-              </div>
-              
-              <div className="debug-section">
-                <h6>Estado del Workflow:</h6>
-                <p><strong>Juego seleccionado:</strong> {workflow.juegoSeleccionado || 'Ninguno'}</p>
-                <p><strong>Grupo seleccionado:</strong> {workflow.grupoSeleccionadoLocal || 'Ninguno'}</p>
-                <p><strong>Grupos disponibles:</strong> {workflow.gruposDisponibles.length}</p>
-              </div>
-              
-              {formulario.ultimaValidacion && (
-                <div className="debug-section">
-                  <h6>Última Validación:</h6>
-                  <p><strong>Es válido:</strong> {formulario.ultimaValidacion.esValido ? 'Sí' : 'No'}</p>
-                  {formulario.ultimaValidacion.mensaje && (
-                    <p><strong>Mensaje:</strong> {formulario.ultimaValidacion.mensaje}</p>
-                  )}
-                  {formulario.ultimaValidacion.jugadorExistente && (
-                    <p><strong>Jugador duplicado ID:</strong> {formulario.ultimaValidacion.jugadorExistente.id}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
-      )}
-      
-      {/* Información de ayuda sobre duplicados */}
-      <div className="help-footer" style={{ marginTop: '20px', padding: '15px', background: '#e9ecef', borderRadius: '5px' }}>
-        <details className="help-details">
-          <summary>❓ Ayuda sobre validación de duplicados</summary>
-          <div className="help-content" style={{ marginTop: '10px' }}>
-            <h6>¿Cómo funciona la detección de duplicados?</h6>
-            <ul>
-              <li><strong>Duplicados exactos:</strong> Mismo nombre y empresa (bloquea el registro)</li>
-              <li><strong>Registros similares:</strong> Nombres o empresas parecidas (muestra advertencia)</li>
-              <li><strong>Acompañantes:</strong> También se verifican para evitar duplicados completos</li>
-              <li><strong>Normalización:</strong> Se ignoran acentos, espacios extra y mayúsculas/minúsculas</li>
-            </ul>
-            
-            <h6>¿Qué hacer si aparece un duplicado?</h6>
-            <ul>
-              <li>Verifica que no sea la misma persona</li>
-              <li>Si es diferente, agrega apellido materno o segundo nombre</li>
-              <li>Revisa la escritura de la empresa</li>
-              <li>En modo edición, se permite modificar datos existentes</li>
-            </ul>
-            
-            <h6>Estados del sistema:</h6>
-            <ul>
-              <li><span style={{color: 'red'}}>🚫 Duplicado exacto:</span> Registro bloqueado</li>
-              <li><span style={{color: 'orange'}}>⚠️ Similar encontrado:</span> Advertencia, puede continuar</li>
-              <li><span style={{color: 'green'}}>✅ Registro único:</span> Permite continuar</li>
-            </ul>
-          </div>
-        </details>
       </div>
     </div>
   );

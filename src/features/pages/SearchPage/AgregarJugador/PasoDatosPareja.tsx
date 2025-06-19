@@ -12,7 +12,7 @@ interface FormData {
 }
 
 interface PasoDatosParejaProps {
-  formData: FormData;
+  formData: FormData; 
   loading: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   onConfirmar: () => void;
@@ -28,27 +28,12 @@ interface PasoDatosParejaProps {
   validando?: boolean;
 }
 
-const NIVELES_DISPONIBLES = [
-  { value: 0, label: '0 - Nuevo jugador' },
-  { value: 1, label: '1 - Principiante' },
-  { value: 2, label: '2 - Básico' },
-  { value: 3, label: '3 - Básico+' },
-  { value: 4, label: '4 - Intermedio' },
-  { value: 5, label: '5 - Intermedio+' },
-  { value: 6, label: '6 - Intermedio++' },
-  { value: 7, label: '7 - Avanzado' },
-  { value: 8, label: '8 - Avanzado+' },
-  { value: 9, label: '9 - Experto' },
-  { value: 10, label: '10 - Experto+' },
-];
-
 const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
   formData,
   loading,
   onInputChange,
   onConfirmar,
   onCancelar,
-  getNivelTexto,
   mostrarAlertaDuplicados = false,
   jugadoresSimilares = [],
   ultimaValidacion,
@@ -56,23 +41,45 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
   onContinuarConSimilares,
   validando = false
 }) => {
+  // Función para quitar acentos
+  const quitarAcentos = (texto: string): string => {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  };
+
+  // Función para procesar los datos antes de confirmar
+  const handleConfirmar = () => {
+    // Crear una copia de formData con los acentos removidos
+    const datosLimpios = {
+      ...formData,
+      nombre: quitarAcentos(formData.nombre),
+      nombreAcompanante: quitarAcentos(formData.nombreAcompanante),
+      empresa: quitarAcentos(formData.empresa),
+      empresaAcompanante: quitarAcentos(formData.empresaAcompanante)
+    };
+
+    // Actualizar el formData original con los datos sin acentos
+    Object.assign(formData, datosLimpios);
+    
+    // Ahora enviar los datos
+    onConfirmar();
+  };
+
+  // Mostrar alert cuando aparezcan duplicados
+  React.useEffect(() => {
+    if (mostrarAlertaDuplicados && ultimaValidacion?.mensaje) {
+      alert(`❌ ${ultimaValidacion.mensaje}`);
+    }
+  }, [mostrarAlertaDuplicados, ultimaValidacion?.mensaje]);
+
   const isFormValid = formData.nombre.trim() && formData.empresa.trim();
 
   return (
     <div className="wizard-step">
-      {/* Alerta de duplicados */}
-      {mostrarAlertaDuplicados && (
-        <AlertaDuplicados
-          jugadorDuplicado={ultimaValidacion?.jugadorExistente}
-          jugadoresSimilares={jugadoresSimilares}
-          mensaje={ultimaValidacion?.mensaje}
-          onCerrar={onCerrarAlertaDuplicados || (() => {})}
-          onContinuarAnyway={onContinuarConSimilares}
-        />
-      )}
-
       <div className="step-header">
-        <h3 className="step-title">👤 Paso 1: Datos de la Pareja</h3>
+        <h3 className="step-title">Datos de la Pareja</h3>
         <p className="step-description">Ingresa los datos de los participantes</p>
         
         {/* Indicador de validación */}
@@ -86,7 +93,7 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
       
       {/* Jugador Principal */}
       <div className="form-section">
-        <h4 className="section-title">👤 Jugador Principal</h4>
+        <h4 className="section-title">Jugador Principal</h4>
         <div className="form-grid">
           <div className="form-group">
             <label htmlFor="nombre" className="form-label required">
@@ -99,10 +106,9 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
               value={formData.nombre} 
               onChange={onInputChange} 
               required 
-              placeholder="Ej: Ana García" 
               className={`form-input ${!formData.nombre.trim() ? 'error' : ''}`}
               disabled={loading}
-              autoComplete="given-name"
+              autoComplete="off"
             />
             {!formData.nombre.trim() && (
               <span className="form-error">Este campo es requerido</span>
@@ -120,10 +126,9 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
               value={formData.empresa} 
               onChange={onInputChange} 
               required 
-              placeholder="Ej: Empresa ABC" 
               className={`form-input ${!formData.empresa.trim() ? 'error' : ''}`}
               disabled={loading}
-              autoComplete="organization"
+              autoComplete="off"
             />
             {!formData.empresa.trim() && (
               <span className="form-error">Este campo es requerido</span>
@@ -134,7 +139,7 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
 
       {/* Acompañante */}
       <div className="form-section">
-        <h4 className="section-title">👥 Acompañante (Opcional)</h4>
+        <h4 className="section-title">Acompañante</h4>
         <div className="form-grid">
           <div className="form-group">
             <label htmlFor="nombreAcompanante" className="form-label">
@@ -146,10 +151,9 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
               type="text" 
               value={formData.nombreAcompanante} 
               onChange={onInputChange} 
-              placeholder="Ej: Francisco López" 
               className="form-input" 
               disabled={loading}
-              autoComplete="given-name"
+              autoComplete="off"
             />
           </div>
 
@@ -163,10 +167,9 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
               type="text" 
               value={formData.empresaAcompanante} 
               onChange={onInputChange} 
-              placeholder="Ej: Empresa XYZ" 
               className="form-input" 
               disabled={loading}
-              autoComplete="organization"
+              autoComplete="off"
             />
           </div>
         </div>
@@ -183,120 +186,6 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
         )}
       </div>
 
-      {/* Configuración */}
-      <div className="form-section">
-        <h4 className="section-title">⚙️ Configuración</h4>
-        <div className="form-group">
-          <label htmlFor="nivel" className="form-label required">
-            Nivel de Habilidad
-          </label>
-          <select 
-            id="nivel" 
-            name="nivel" 
-            value={formData.nivel} 
-            onChange={onInputChange} 
-            required 
-            className="form-select" 
-            disabled={loading}
-          >
-            {NIVELES_DISPONIBLES.map((nivel) => (
-              <option key={nivel.value} value={nivel.value}>
-                {nivel.label}
-              </option>
-            ))}
-          </select>
-          <small className="form-help">
-            Nivel actual: <strong>{formData.nivel} - {getNivelTexto(formData.nivel)}</strong>
-          </small>
-        </div>
-
-        {/* Estado activo */}
-        <div className="form-group">
-          <label className="form-checkbox-label">
-            <input
-              type="checkbox"
-              name="activo"
-              checked={formData.activo}
-              onChange={onInputChange}
-              disabled={loading}
-              className="form-checkbox"
-            />
-            <span className="checkbox-text">Jugador activo</span>
-          </label>
-          <small className="form-help">
-            Los jugadores inactivos no participarán en futuras competencias
-          </small>
-        </div>
-      </div>
-
-      {/* Resumen */}
-      <div className="form-summary">
-        <h5>📋 Resumen de datos:</h5>
-        <div className="summary-grid">
-          <div className="summary-item">
-            <span className="summary-label">Jugador principal:</span>
-            <span className="summary-value">{formData.nombre || 'Sin especificar'}</span>
-          </div>
-          <div className="summary-item">
-            <span className="summary-label">Empresa:</span>
-            <span className="summary-value">{formData.empresa || 'Sin especificar'}</span>
-          </div>
-          {formData.nombreAcompanante && (
-            <div className="summary-item">
-              <span className="summary-label">Acompañante:</span>
-              <span className="summary-value">{formData.nombreAcompanante}</span>
-            </div>
-          )}
-          <div className="summary-item">
-            <span className="summary-label">Nivel:</span>
-            <span className="summary-value">{getNivelTexto(formData.nivel)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Información de verificación de duplicados */}
-      {!mostrarAlertaDuplicados && jugadoresSimilares && jugadoresSimilares.length > 0 && (
-        <div className="similares-info">
-          <div className="info-header">
-            <span className="info-icon">⚠️</span>
-            <h5>Registros similares encontrados</h5>
-          </div>
-          <p className="info-text">
-            Se encontraron {jugadoresSimilares.length} registro(s) similar(es). 
-            Verifica que no sean duplicados antes de continuar.
-          </p>
-          <details className="similares-details">
-            <summary>Ver registros similares</summary>
-            <div className="similares-list">
-              {jugadoresSimilares.map((jugador, index) => (
-                <div key={jugador.id || index} className="similar-item">
-                  <span className="similar-nombre">{jugador.nombre}</span>
-                  <span className="similar-empresa">({jugador.empresa})</span>
-                  {jugador.nombreAcompanante && (
-                    <span className="similar-acompanante">+ {jugador.nombreAcompanante}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
-      )}
-
-      {/* Consejos para evitar duplicados */}
-      <div className="consejos-duplicados">
-        <details className="consejos-details">
-          <summary>💡 Consejos para evitar duplicados</summary>
-          <div className="consejos-content">
-            <ul className="consejos-list">
-              <li><strong>Nombres:</strong> Usa el nombre completo (nombre y apellido)</li>
-              <li><strong>Empresas:</strong> Verifica la escritura exacta de la empresa</li>
-              <li><strong>Personas diferentes:</strong> Si son personas diferentes con el mismo nombre, agrega un distintivo</li>
-              <li><strong>Verificación:</strong> El sistema detecta automáticamente posibles duplicados</li>
-            </ul>
-          </div>
-        </details>
-      </div>
-
       {/* Acciones */}
       <div className="step-actions">
         <button 
@@ -305,23 +194,35 @@ const PasoDatosPareja: React.FC<PasoDatosParejaProps> = ({
           className="btn-cancel" 
           disabled={loading}
         >
-          <span className="btn-icon">❌</span>
+          <span className="btn-icon"></span>
           Cancelar
         </button>
         
         <button 
           type="button" 
-          onClick={onConfirmar} 
+          onClick={handleConfirmar} 
           className="btn-confirm" 
           disabled={loading || !isFormValid}
           title={!isFormValid ? 'Complete todos los campos requeridos' : 'Continuar al siguiente paso'}
         >
           <span className="btn-icon">
-            {loading ? '⏳' : validando ? '🔍' : '✅'}
           </span>
           {loading ? 'Guardando...' : validando ? 'Verificando...' : 'Confirmar y Continuar'}
         </button>
       </div>
+
+      {/* Alerta de duplicados - Movida aquí, abajo de los botones */}
+      {mostrarAlertaDuplicados && (
+        <div className="duplicados-section">
+          <AlertaDuplicados
+            jugadorDuplicado={ultimaValidacion?.jugadorExistente}
+            jugadoresSimilares={jugadoresSimilares}
+            mensaje={ultimaValidacion?.mensaje}
+            onCerrar={onCerrarAlertaDuplicados || (() => {})}
+            onContinuarAnyway={onContinuarConSimilares}
+          />
+        </div>
+      )}
     </div>
   );
 };

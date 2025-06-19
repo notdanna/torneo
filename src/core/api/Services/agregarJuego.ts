@@ -121,8 +121,8 @@ export const obtenerNombreJuegoPorId = (idJuego: number): string => {
   const juegos: { [key: number]: string } = {
     1: 'Futbolitos',
     2: 'Soplados', 
-    3: 'Beer Pong',
-    4: 'Ruelas'
+    3: 'BeerPong',
+    4: 'Rayuela'
   };
   
   return juegos[idJuego] || `Juego ${idJuego}`;

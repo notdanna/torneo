@@ -21,7 +21,7 @@ export interface Grupo {
     id_juego: number;
     participantes: string[];
     num_grupo: number;
-    id_ruelas?: string;
+    id_rayuela?: string;
     id_futbolito?: string;
     id_futbolitos_soplados?: string;
     id_beer_pong?: string;

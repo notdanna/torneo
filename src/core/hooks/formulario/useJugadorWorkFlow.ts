@@ -20,6 +20,13 @@ export const useJugadorWorkflow = (
   onJugadorAgregado?: FormularioJugadorProps['onJugadorAgregado']
 ) => {
   
+  // 🔍 DEBUG INICIAL
+  console.log('🔧 HOOK useJugadorWorkflow INICIALIZADO:');
+  console.log('- pasoActual:', pasoActual);
+  console.log('- jugadorCreado:', jugadorCreado);
+  console.log('- jugadorCreado?.id_jugador:', jugadorCreado?.id_jugador);
+  console.log('- typeof jugadorCreado?.id_jugador:', typeof jugadorCreado?.id_jugador);
+  
   const [state, setState] = useState<WorkflowState>({
     juegoSeleccionado: undefined,
     grupoSeleccionadoLocal: 0,
@@ -39,14 +46,19 @@ export const useJugadorWorkflow = (
     obtenerNombreJuego,
   } = useJuegos(pasoActual >= PasoWizard.SELECCION_JUEGO);
 
+  // 🔍 DEBUG JUEGOS
+  console.log('🎮 ESTADO JUEGOS:');
+  console.log('- juegos:', juegos);
+  console.log('- cargandoJuegos:', cargandoJuegos);
+  console.log('- errorJuegos:', errorJuegos);
+
   // Configuración del selector de grupo
   const selectorGrupoConfig = useMemo(() => ({
     grupos: state.gruposDisponibles,
-    jugadorSeleccionado: jugadorCreado?.id ? parseInt(jugadorCreado.id) : undefined,
+    jugadorSeleccionado: jugadorCreado?.id_jugador ? parseInt(jugadorCreado.id_jugador) : undefined,
     juegoSeleccionado: state.juegoSeleccionado || undefined,
-    onSuccess: (data: any) => {
-      console.log('✅ Jugador agregado al grupo exitosamente:', data);
-      setState(prev => ({ ...prev, success: '✅ ¡Pareja registrada y asignada exitosamente!' }));
+    onSuccess: () => {
+      setState(prev => ({ ...prev, success: '¡Pareja registrada y asignada exitosamente!' }));
       
       // Cerrar el modal después de 2 segundos
       setTimeout(() => {
@@ -93,15 +105,15 @@ export const useJugadorWorkflow = (
           
           // TODO: Reemplazar con tu API real de grupos
           const gruposDeEjemplo: Grupo[] = [
-            { id: 1, nombre: "Grupo A", descripcion: "Principiantes", activo: true },
-            { id: 2, nombre: "Grupo B", descripcion: "Intermedio", activo: true },
-            { id: 3, nombre: "Grupo C", descripcion: "Avanzado", activo: true },
+            { id: 1, nombre: "Grupo A", activo: true },
+            { id: 2, nombre: "Grupo B", activo: true },
+            { id: 3, nombre: "Grupo C", activo: true },
           ];
           
           setState(prev => ({ ...prev, gruposDisponibles: gruposDeEjemplo }));
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'Error al cargar los grupos';
-          setState(prev => ({ ...prev, error: `❌ ${errorMessage}` }));
+          setState(prev => ({ ...prev, error: `${errorMessage}` }));
         } finally {
           setState(prev => ({ ...prev, cargandoGrupos: false }));
         }
@@ -120,7 +132,15 @@ export const useJugadorWorkflow = (
 
   // Manejar selección de juego
   const handleJuegoSeleccionado = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    console.log('🎯 SELECCIONANDO JUEGO:');
+    console.log('- e.target.value:', e.target.value);
+    console.log('- typeof e.target.value:', typeof e.target.value);
+    
     const juegoId = Number(e.target.value);
+    console.log('- juegoId después de Number():', juegoId);
+    console.log('- juegoId > 0?', juegoId > 0);
+    console.log('- Boolean(juegoId):', Boolean(juegoId));
+    
     if (juegoId) {
       setState(prev => ({
         ...prev,
@@ -128,30 +148,51 @@ export const useJugadorWorkflow = (
         grupoSeleccionadoLocal: 0,
         gruposDisponibles: [],
       }));
+      console.log('✅ Estado actualizado, juegoSeleccionado será:', juegoId);
       seleccionarJuego(juegoId);
       setJuegoIdGrupo(juegoId);
+    } else {
+      console.warn('⚠️ juegoId es falsy:', juegoId);
     }
   };
 
   // Confirmar paso 2 (asignar juego)
   const confirmarPaso2 = async (): Promise<boolean> => {
-    if (!state.juegoSeleccionado || !jugadorCreado?.id) {
-      setState(prev => ({ ...prev, error: '❌ Faltan datos para continuar.' }));
+    console.log('🚀 EJECUTANDO confirmarPaso2');
+    console.log('- state.juegoSeleccionado:', state.juegoSeleccionado);
+    console.log('- typeof state.juegoSeleccionado:', typeof state.juegoSeleccionado);
+    console.log('- jugadorCreado:', jugadorCreado);
+    console.log('- jugadorCreado?.id:', jugadorCreado?.id);
+    console.log('- typeof jugadorCreado?.id:', typeof jugadorCreado?.id);
+    
+    // Verificación más detallada
+    const juegoValido = state.juegoSeleccionado && state.juegoSeleccionado > 0;
+    const jugadorValido = jugadorCreado && jugadorCreado.id && jugadorCreado.id !== '';
+    
+    console.log('- juegoValido:', juegoValido);
+    console.log('- jugadorValido:', jugadorValido);
+    console.log('- Condición original (!state.juegoSeleccionado || !jugadorCreado?.id):', (!state.juegoSeleccionado || !jugadorCreado?.id));
+    
+    if (!state.juegoSeleccionado || !jugadorCreado?.id_jugador) {
+      setState(prev => ({ ...prev, error: 'Faltan datos para continuar.' }));
       return false;
     }
     
     setState(prev => ({ ...prev, loading: true, error: null, success: null }));
     
     try {
-      const resultado = await agregarJugadorAJuego(Number(jugadorCreado.id), state.juegoSeleccionado);
+      console.log('🔄 Llamando agregarJugadorAJuego con:', Number(jugadorCreado.id_jugador), state.juegoSeleccionado);
+      const resultado = await agregarJugadorAJuego(Number(jugadorCreado.id_jugador), state.juegoSeleccionado);
+      console.log('📥 Resultado de agregarJugadorAJuego:', resultado);
+      
       if (resultado.success) {
         setState(prev => ({ 
           ...prev, 
-          success: `✅ Asignado al juego: ${obtenerNombreJuego(state.juegoSeleccionado!)}` 
+          success: `Asignado al juego: ${obtenerNombreJuego(state.juegoSeleccionado!)}` 
         }));
         
         // Configurar IDs para el siguiente paso
-        const idJugadorNumerico = parseInt(jugadorCreado.id);
+        const idJugadorNumerico = parseInt(jugadorCreado.id_jugador);
         if (!isNaN(idJugadorNumerico)) {
           setJugadorIdGrupo(idJugadorNumerico);
           setJuegoIdGrupo(state.juegoSeleccionado);
@@ -159,12 +200,14 @@ export const useJugadorWorkflow = (
         
         return true;
       } else {
-        setState(prev => ({ ...prev, error: `❌ Error al asignar al juego: ${resultado.error}` }));
+        setState(prev => ({ ...prev, error: `Error al asignar al juego: ${resultado.error}` }));
+        console.error('confirmarPaso2 falló:', resultado.error);
         return false;
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al asignar juego';
-      setState(prev => ({ ...prev, error: `❌ ${errorMessage}` }));
+      setState(prev => ({ ...prev, error: `${errorMessage}` }));
+      console.error('Error en confirmarPaso2:', err);
       return false;
     } finally {
       setState(prev => ({ ...prev, loading: false }));
@@ -178,8 +221,8 @@ export const useJugadorWorkflow = (
     setState(prev => ({ ...prev, grupoSeleccionadoLocal: idGrupo }));
     
     // Asegurar que los otros IDs están configurados en el hook
-    if (jugadorCreado?.id && state.juegoSeleccionado) {
-      const idJugadorNumerico = parseInt(jugadorCreado.id);
+    if (jugadorCreado?.id_jugador && state.juegoSeleccionado) {
+      const idJugadorNumerico = parseInt(jugadorCreado.id_jugador);
       setJugadorIdGrupo(idJugadorNumerico);
       setJuegoIdGrupo(state.juegoSeleccionado);
       setGrupoId(idGrupo);
@@ -190,17 +233,25 @@ export const useJugadorWorkflow = (
 
   // Confirmar paso 3 (asignar grupo)
   const confirmarPaso3 = async (): Promise<boolean> => {
-    if (!jugadorCreado?.id || !state.juegoSeleccionado || !state.grupoSeleccionadoLocal) {
-      console.error('❌ Faltan datos para agregar al grupo');
-      setState(prev => ({ ...prev, error: '❌ Faltan datos para finalizar el registro.' }));
+    console.log('🚀 EJECUTANDO confirmarPaso3');
+    console.log('- jugadorCreado?.id_jugador:', jugadorCreado?.id_jugador);
+    console.log('- state.juegoSeleccionado:', state.juegoSeleccionado);
+    console.log('- state.grupoSeleccionadoLocal:', state.grupoSeleccionadoLocal);
+    
+    if (!jugadorCreado?.id_jugador || !state.juegoSeleccionado || !state.grupoSeleccionadoLocal) {
+      console.error('Faltan datos para agregar al grupo');
+      console.error('  - jugadorCreado?.id_jugador:', jugadorCreado?.id_jugador);
+      console.error('  - state.juegoSeleccionado:', state.juegoSeleccionado);
+      console.error('  - state.grupoSeleccionadoLocal:', state.grupoSeleccionadoLocal);
+      setState(prev => ({ ...prev, error: 'Faltan datos para finalizar el registro.' }));
       return false;
     }
 
-    const idJugadorNumerico = parseInt(jugadorCreado.id);
+    const idJugadorNumerico = parseInt(jugadorCreado.id_jugador);
     
     if (isNaN(idJugadorNumerico)) {
-      console.error('❌ ID de jugador inválido:', jugadorCreado.id);
-      setState(prev => ({ ...prev, error: '❌ ID de jugador inválido' }));
+      console.error('ID de jugador inválido:', jugadorCreado.id_jugador);
+      setState(prev => ({ ...prev, error: 'ID de jugador inválido' }));
       return false;
     }
 
@@ -225,6 +276,7 @@ export const useJugadorWorkflow = (
 
   // Reset del workflow
   const resetWorkflow = () => {
+    console.log('🔄 Reseteando workflow');
     setState({
       juegoSeleccionado: undefined,
       grupoSeleccionadoLocal: 0,

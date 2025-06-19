@@ -34,13 +34,7 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
   obtenerNombreJuego,
   getNivelTexto
 }) => {
-  const formatearNombrePareja = (jugador: JugadorCreadoLocal) => {
-    if (jugador.nombreAcompanante) {
-      return `${jugador.nombre} y ${jugador.nombreAcompanante}`;
-    }
-    return jugador.nombre;
-  };
-
+  
   const getGrupoRecomendado = (nivel: number): number | null => {
     // Lógica simple para recomendar grupo basado en nivel
     if (nivel <= 2) return gruposDisponibles.find(g => g.nombre.includes('A'))?.id || null;
@@ -53,29 +47,33 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
   return (
     <div className="wizard-step">
       <div className="step-header">
-        <h3 className="step-title">📁 Paso 3: Seleccionar Grupo</h3>
-        <p className="step-description">Elige el grupo donde competirá la pareja</p>
-        
-        {/* Información del contexto */}
-        {jugadorCreado && juegoSeleccionado && (
-          <div className="context-info">
-            <div className="context-card">
-              <div className="context-row">
-                <span className="context-label">👤 Pareja:</span>
-                <span className="context-value">{formatearNombrePareja(jugadorCreado)}</span>
-              </div>
-              <div className="context-row">
-                <span className="context-label">🎮 Juego:</span>
-                <span className="context-value">{obtenerNombreJuego(juegoSeleccionado)}</span>
-              </div>
-              <div className="context-row">
-                <span className="context-label">⭐ Nivel:</span>
-                <span className="context-value">{jugadorCreado.nivel} - {getNivelTexto(jugadorCreado.nivel)}</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <h3 className="step-title">Seleccionar Grupo</h3>
       </div>
+
+      {/* Resumen de la información del jugador */}
+      {jugadorCreado && (
+        <div className="resumen-jugador">
+          <div className="resumen-header">
+            <h4 className="resumen-title">📋 Resumen del Registro</h4>
+          </div>
+          <div className="resumen-content">
+            <div className="resumen-item">
+              <span className="resumen-label">Nombre:</span>
+              <span className="resumen-valor">{jugadorCreado.nombre}</span>
+            </div>
+            <div className="resumen-item">
+              <span className="resumen-label">Id de la pareja:</span>
+              <span className="resumen-valor">{jugadorCreado.id_jugador}</span>
+            </div>
+            {juegoSeleccionado && (
+              <div className="resumen-item">
+                <span className="resumen-label">Juego:</span>
+                <span className="resumen-valor">{obtenerNombreJuego(juegoSeleccionado)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="form-section">
         {/* Estados de carga */}
@@ -89,17 +87,6 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
         {/* Lista de grupos */}
         {!cargandoGrupos && gruposDisponibles.length > 0 && (
           <>
-            {/* Recomendación */}
-            {grupoRecomendado && (
-              <div className="recommendation-banner">
-                <span className="recommendation-icon">💡</span>
-                <div className="recommendation-content">
-                  <strong>Grupo recomendado:</strong> Basado en el nivel de habilidad ({jugadorCreado?.nivel}), 
-                  recomendamos el grupo {gruposDisponibles.find(g => g.id === grupoRecomendado)?.nombre}.
-                </div>
-              </div>
-            )}
-
             <div className="grupos-container">
               <h4 className="grupos-title">Grupos disponibles:</h4>
               <div className="lista-grupos">
@@ -122,11 +109,10 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
                       <div className="grupo-header">
                         <div className="grupo-info">
                           <span className="grupo-nombre">{grupo.nombre}</span>
-                          <span className="grupo-descripcion">{grupo.descripcion || 'Sin descripción'}</span>
                         </div>
                         <div className="grupo-meta">
                           {grupo.id === grupoRecomendado && (
-                            <span className="recomendado-badge">Recomendado</span>
+                            <span className="recomendado-badge">⭐ Recomendado</span>
                           )}
                           <span className="grupo-id-badge">ID: {grupo.id}</span>
                           <div className="selector-radio">
@@ -140,19 +126,6 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
                           </div>
                         </div>
                       </div>
-                      
-                      {grupoSeleccionado === grupo.id && (
-                        <div className="grupo-details">
-                          <div className="detail-item">
-                            <span className="detail-icon">📊</span>
-                            <span>Nivel sugerido para este grupo</span>
-                          </div>
-                          <div className="detail-item">
-                            <span className="detail-icon">👥</span>
-                            <span>Competencias grupales regulares</span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
               </div>
@@ -170,103 +143,6 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
         )}
       </div>
 
-      {/* Resumen final */}
-      {grupoSeleccionadoInfo && jugadorCreado && juegoSeleccionado && (
-        <div className="resumen-final">
-          <h5>🎯 Resumen del registro completo:</h5>
-          <div className="resumen-details">
-            <div className="resumen-grid">
-              <div className="resumen-item">
-                <span className="resumen-icon">👤</span>
-                <div className="resumen-content">
-                  <span className="resumen-label">Pareja:</span>
-                  <span className="resumen-value">{formatearNombrePareja(jugadorCreado)}</span>
-                </div>
-              </div>
-              
-              <div className="resumen-item">
-                <span className="resumen-icon">🎮</span>
-                <div className="resumen-content">
-                  <span className="resumen-label">Juego:</span>
-                  <span className="resumen-value">{obtenerNombreJuego(juegoSeleccionado)}</span>
-                </div>
-              </div>
-              
-              <div className="resumen-item">
-                <span className="resumen-icon">📁</span>
-                <div className="resumen-content">
-                  <span className="resumen-label">Grupo:</span>
-                  <span className="resumen-value">{grupoSeleccionadoInfo.nombre}</span>
-                </div>
-              </div>
-              
-              <div className="resumen-item">
-                <span className="resumen-icon">⭐</span>
-                <div className="resumen-content">
-                  <span className="resumen-label">Nivel:</span>
-                  <span className="resumen-value">{formDataNivel} - {getNivelTexto(formDataNivel)}</span>
-                </div>
-              </div>
-
-              <div className="resumen-item">
-                <span className="resumen-icon">📋</span>
-                <div className="resumen-content">
-                  <span className="resumen-label">Estado:</span>
-                  <span className="resumen-value">Listo para finalizar</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Información adicional del grupo */}
-            <div className="grupo-info-extra">
-              <div className="info-item">
-                <span className="info-icon">📝</span>
-                <span className="info-text">
-                  <strong>{grupoSeleccionadoInfo.nombre}:</strong> {grupoSeleccionadoInfo.descripcion || 'Sin descripción'}
-                </span>
-              </div>
-              
-              {grupoRecomendado && grupoSeleccionado === grupoRecomendado && (
-                <div className="info-item highlight">
-                  <span className="info-icon">✨</span>
-                  <span className="info-text">
-                    Este grupo es el <strong>recomendado</strong> para el nivel de habilidad de la pareja
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mensaje de éxito */}
-      {dataGrupo !== null && (
-        <div className="success-final">
-          <div className="success-icon">🎉</div>
-          <div className="success-content">
-            <h4>¡Registro completado exitosamente!</h4>
-            <p>
-              La pareja <strong>{jugadorCreado?.nombre}</strong> ha sido agregada al grupo{' '}
-              <strong>{grupoSeleccionadoInfo?.nombre}</strong> correctamente.
-            </p>
-            <div className="success-details">
-              <div className="success-step">
-                <span className="step-icon">✅</span>
-                <span className="step-text">Jugador registrado</span>
-              </div>
-              <div className="success-step">
-                <span className="step-icon">✅</span>
-                <span className="step-text">Juego asignado</span>
-              </div>
-              <div className="success-step">
-                <span className="step-icon">✅</span>
-                <span className="step-text">Grupo confirmado</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Acciones */}
       <div className="step-actions">
         <button 
@@ -275,7 +151,7 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
           className="btn-cancel" 
           disabled={loadingGrupo || dataGrupo !== null}
         >
-          <span className="btn-icon">❌</span>
+          <span className="btn-icon"></span>
           Cancelar
         </button>
         
@@ -293,7 +169,6 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
           }
         >
           <span className="btn-icon">
-            {loadingGrupo ? '⏳' : dataGrupo !== null ? '✅' : '🎉'}
           </span>
           {loadingGrupo ? (
             'Finalizando...'

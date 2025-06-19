@@ -18,19 +18,19 @@ const STEPS: StepInfo[] = [
     paso: PasoWizard.DATOS_PAREJA,
     numero: 1,
     label: "Datos de Pareja",
-    icono: "👤"
+    icono: ""
   },
   {
     paso: PasoWizard.SELECCION_JUEGO,
     numero: 2,
     label: "Seleccionar Juego",
-    icono: "🎮"
+    icono: ""
   },
   {
     paso: PasoWizard.SELECCION_GRUPO,
     numero: 3,
     label: "Seleccionar Grupo",
-    icono: "📁"
+    icono: ""
   }
 ];
 
@@ -85,7 +85,6 @@ const IndicadorProgreso: React.FC<IndicadorProgresoProps> = ({
       {/* Información del paso actual */}
       <div className="current-step-info">
         <span className="current-step-text">
-          Paso {pasoActual} de {STEPS.length}
         </span>
       </div>
     </div>

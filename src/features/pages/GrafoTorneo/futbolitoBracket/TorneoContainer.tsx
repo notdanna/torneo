@@ -18,9 +18,7 @@ export const TorneoContainer: React.FC<TorneoContainerProps> = ({ className = ""
     modoVisualizacion,
     estructura,
     rondasVisibles,
-    ganadoresArray,
     totalGanadores,
-    estadisticasTorneo,
     refreshData,
     ultimaActualizacion
   } = useTorneoCompleto();

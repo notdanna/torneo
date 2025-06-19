@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { actualizarJugador, crearJugador } from '../../../core/api/Services/jugadorService.ts';
 import { FormularioJugadorProps } from '../../../core/models/formulario.ts';
 import { useValidacionDuplicados } from './useValidacionDuplicados';
-import { ValidacionDuplicadosService } from '../../../core/api/Services/duplicadosService.ts';
 
 interface FormData {
   nombre: string;
@@ -114,7 +113,7 @@ export const useFormularioJugador = ({
 
     const resultado = await validarDuplicado(
       criterios,
-      modoEdicion ? jugadorParaEditar?.id.toString() : undefined
+      modoEdicion ? jugadorParaEditar?.id_jugador.toString() : undefined
     );
 
     console.log('📊 Resultado validación duplicados:', resultado);
@@ -122,11 +121,6 @@ export const useFormularioJugador = ({
     if (!resultado.esValido) {
       setError(resultado.mensaje || 'Registro duplicado detectado');
       setMostrarAlertaDuplicados(true);
-      
-      // Alerta visual adicional para asegurar que se vea
-      setTimeout(() => {
-        alert(`🚫 DUPLICADO DETECTADO\n\n${resultado.mensaje}`);
-      }, 100);
       
       return false;
     }
@@ -138,7 +132,7 @@ export const useFormularioJugador = ({
     console.log('💾 Guardando jugador...', { 
       forzarGuardado, 
       modoEdicion, 
-      jugadorId: jugadorParaEditar?.id 
+      jugadorId: jugadorParaEditar?.id_jugador 
     });
     
     // VALIDACIÓN OBLIGATORIA (excepto si es guardado forzado)
@@ -162,25 +156,24 @@ export const useFormularioJugador = ({
     
     try {
       let resultado;
-      if (modoEdicion && jugadorParaEditar?.id) {
-        console.log('✏️ Actualizando jugador existente:', jugadorParaEditar.id);
-        await actualizarJugador(jugadorParaEditar.id, formData);
+      if (modoEdicion && jugadorParaEditar?.id_jugador) {
+        console.log('✏️ Actualizando jugador existente:', jugadorParaEditar.id_jugador);
+        await actualizarJugador(jugadorParaEditar.id_jugador);
         resultado = { ...jugadorParaEditar, ...formData };
-        setSuccess('✅ Pareja actualizada exitosamente');
+        setSuccess('Pareja actualizada exitosamente');
       } else {
         console.log('➕ Creando nuevo jugador');
         resultado = await crearJugador(formData);
-        setSuccess('✅ Pareja creada exitosamente');
+        setSuccess('Pareja creada exitosamente');
         
-        // Actualizar cache local para futuras validaciones
-        ValidacionDuplicadosService.actualizarCacheJugador(resultado);
+
       }
       
       setJugadorCreado(resultado);
       setMostrarAlertaDuplicados(false);
       limpiarValidacion();
       
-      console.log('✅ Jugador guardado exitosamente:', resultado.id);
+      console.log('✅ Jugador guardado exitosamente:', resultado.id_jugador);
       return true;
       
     } catch (err) {

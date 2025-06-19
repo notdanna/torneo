@@ -29,16 +29,16 @@ export const JUEGOS_DISPONIBLES: JuegoLocal[] = [
   },
   {
     id: 3,
-    nombre: 'Ruelas',
-    descripcion: 'Juego de ruelas',
-    icono: '🎯',
+    nombre: 'Beer Pong',
+    descripcion: 'Juego de beer pong',
+    icono: '🍺',
     activo: true
   },
   {
     id: 4,
-    nombre: 'Beer Pong',
-    descripcion: 'Juego de beer pong',
-    icono: '🍺',
+    nombre: 'Rayuela',
+    descripcion: 'Juego de rayuela',
+    icono: '🎯',
     activo: true
   }
 ];
