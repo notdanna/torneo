@@ -2,11 +2,14 @@
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { useNavigate } from 'react-router-dom';
 import { useFirebaseData } from '../../../../core/hooks/beerpongGrupos/useFirebaseDataGrafo_2';
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
 const BracketTiempoReal32: React.FC = () => {
+  const navigate = useNavigate(); 
+  
   const {
     partidas,
     nivelesJugadores,
@@ -15,7 +18,12 @@ const BracketTiempoReal32: React.FC = () => {
   } = useFirebaseData();
   
   const svgRef = useRef<SVGSVGElement>(null!);
-
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/bracket_33');
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [navigate]);
   // Effect to draw the bracket with D3
   useEffect(() => {
     const svg = d3.select(svgRef.current);

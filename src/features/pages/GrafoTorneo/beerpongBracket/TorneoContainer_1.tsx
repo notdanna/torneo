@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useRef, useEffect } from 'react';
 import { useTorneoCompleto } from '../../../../core/hooks/beerpongGrupos/useTorneoCompleto_1';
 import { renderBracket } from '../../../../core/utils/d3Render';
+import { useNavigate } from 'react-router-dom';
 
 interface TorneoContainerProps {
   className?: string;
@@ -10,6 +11,7 @@ interface TorneoContainerProps {
 
 export const TorneoContainer31: React.FC<TorneoContainerProps> = ({ className = "" }) => {
   const svgRef = useRef<SVGSVGElement>(null) as React.RefObject<SVGSVGElement>;
+  const navigate = useNavigate();
   
   const {
     loading,
@@ -21,6 +23,22 @@ export const TorneoContainer31: React.FC<TorneoContainerProps> = ({ className = 
     totalGanadores,
     refreshData,
   } = useTorneoCompleto();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/torneo_32'); // Redirige a TorneoContainer_2
+    }, 10000); // 10 segundos
+
+    // Limpiar el timer si el componente se desmonta
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
+  // Renderizar el bracket cuando el modo es 'arbol' (mantener este useEffect igual)
+  useEffect(() => {
+    if (modoVisualizacion === 'arbol' && estructura.length > 0) {
+      console.log('🎨 Renderizando bracket del torneo...');
+      renderBracket(svgRef, estructura, rondasVisibles);
+    }
+  }, [modoVisualizacion, estructura, rondasVisibles]);
 
   // Renderizar el bracket cuando el modo es 'arbol'
   useEffect(() => {

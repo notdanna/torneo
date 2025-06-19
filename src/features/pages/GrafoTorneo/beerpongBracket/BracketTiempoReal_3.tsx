@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { useNavigate } from 'react-router-dom';
 import { useFirebaseData } from '../../../../core/hooks/beerpongGrupos/useFirebaseDataGrafo_3';
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
@@ -15,7 +16,13 @@ const BracketTiempoReal33: React.FC = () => {
   } = useFirebaseData();
   
   const svgRef = useRef<SVGSVGElement>(null!);
-
+  const navigate = useNavigate();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/bracket_31');
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [navigate]);
   // Effect to draw the bracket with D3
   useEffect(() => {
     const svg = d3.select(svgRef.current);

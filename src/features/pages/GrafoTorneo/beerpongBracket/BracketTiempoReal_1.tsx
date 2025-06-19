@@ -1,20 +1,33 @@
 // src/features/pages/GrafoTorneo/BracketTiempoReal.tsx
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import * as d3 from 'd3';
 import { useFirebaseData } from '../../../../core/hooks/beerpongGrupos/useFirebaseDataGrafo_1';
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
 const BracketTiempoReal31: React.FC = () => {
+  const navigate = useNavigate(); 
+  
   const {
     partidas,
     nivelesJugadores,
     loading,
     error,
   } = useFirebaseData();
-  
+
   const svgRef = useRef<SVGSVGElement>(null!);
+
+  // ← AGREGAR ESTE useEffect PARA LA REDIRECCIÓN
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/bracket_32'); // Cambia a BracketTiempoReal_2
+    }, 10000); // 10 segundos (10000 ms)
+
+    // Limpiar el timer si el componente se desmonta
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   // Effect to draw the bracket with D3
   useEffect(() => {
@@ -31,7 +44,7 @@ const BracketTiempoReal31: React.FC = () => {
       partidas, 
       nivelesJugadores
     );
-    
+        
     // Render only the visible rounds of the bracket
     renderBracket(svgRef, estructura, rondasVisibles);
   }, [partidas, nivelesJugadores, loading, error]);
@@ -40,7 +53,7 @@ const BracketTiempoReal31: React.FC = () => {
   return (
     <div style={{ height: 'calc(100vh - 40px)', width: '100%', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       {/* <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Futbolito: 1</h1> */}
-
+       
       {/* The container for the D3 bracket */}
       <div style={{
         flex: 1,
