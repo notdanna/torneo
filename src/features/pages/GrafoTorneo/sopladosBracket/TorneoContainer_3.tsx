@@ -19,9 +19,7 @@ export const TorneoContainer23: React.FC<TorneoContainerProps> = ({ className = 
     rondasVisibles,
     ganadoresArray,
     totalGanadores,
-    estadisticasTorneo,
     refreshData,
-    ultimaActualizacion
   } = useTorneoCompleto();
 
   // Renderizar el bracket cuando el modo es 'arbol'

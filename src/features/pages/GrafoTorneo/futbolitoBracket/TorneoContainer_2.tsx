@@ -12,16 +12,14 @@ export const TorneoContainer12: React.FC<TorneoContainerProps> = ({ className = 
   const svgRef = useRef<SVGSVGElement>(null) as React.RefObject<SVGSVGElement>;
   
   const {
-    loading,
+    loading,  
     error,
     modoVisualizacion,
     estructura,
     rondasVisibles,
     ganadoresArray,
     totalGanadores,
-    estadisticasTorneo,
     refreshData,
-    ultimaActualizacion
   } = useTorneoCompleto();
 
   // Renderizar el bracket cuando el modo es 'arbol'

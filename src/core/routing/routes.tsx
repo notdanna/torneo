@@ -90,7 +90,7 @@ export const AppRoutes = () => {
       <Route path="/torneo_11" element={<TorneoContainer11 />} />
       <Route path="/torneo_12" element={<TorneoContainer12 />} />
       <Route path="/torneo_13" element={<TorneoContainer13 />} />
-
+     
       <Route path="/torneo_21" element={<TorneoContainer21 />} />
       <Route path="/torneo_22" element={<TorneoContainer22 />} />
       <Route path="/torneo_23" element={<TorneoContainer23 />} />
