@@ -1,7 +1,7 @@
 // hooks/useFirebaseGanadores.ts
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../firebase';
+import { db } from '../../firebase';
 
 // Estructura de datos para un ganador individual
 export interface GanadorInfo {

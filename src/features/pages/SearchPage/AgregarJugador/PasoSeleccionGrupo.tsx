@@ -26,13 +26,10 @@ const PasoSeleccionGrupo: React.FC<PasoSeleccionGrupoProps> = ({
   cargandoGrupos,
   loadingGrupo,
   dataGrupo,
-  grupoSeleccionadoInfo,
-  formDataNivel,
   onSeleccionarGrupo,
   onConfirmar,
   onCancelar,
   obtenerNombreJuego,
-  getNivelTexto
 }) => {
   
   const getGrupoRecomendado = (nivel: number): number | null => {

@@ -1,6 +1,6 @@
 // hooks/useTorneoCompleto.ts
 import { useState, useEffect, useMemo } from 'react';
-import { useFirebaseData } from './useFirebaseDataGrafo_1';
+import { useFirebaseData } from './useFirebaseDataGrafo_3';
 import { useFirebaseGanadores } from '../useFirebaseGanadores_1';
 import { crearEstructuraConRondasOcultas } from '../../utils/torneoUtils';
 import { NodoTorneo } from '../../models/grafos';
@@ -39,7 +39,7 @@ interface UseTorneoCompletoReturn {
 }
 
 export const useTorneoCompleto = (): UseTorneoCompletoReturn => {
-  const [, setRefreshTrigger] = useState(0);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   // Hooks para datos del torneo y ganadores
   const {

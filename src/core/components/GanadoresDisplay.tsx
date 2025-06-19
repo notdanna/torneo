@@ -1,6 +1,6 @@
 // components/GanadoresDisplay.tsx
 import * as React from 'react';
-import { useFirebaseGanadores, GanadorInfo } from '../hooks/futbolitoGrupos/useFirebaseGanadores_1';
+import { useFirebaseGanadores, GanadorInfo } from '../hooks/useFirebaseGanadores_1';
 
 interface GanadoresDisplayProps {
   className?: string;
