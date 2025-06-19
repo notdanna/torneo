@@ -6,7 +6,7 @@ import { useFirebaseData } from '../../../../core/hooks/beerpongGrupos/useFireba
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
-const BracketTiempoReal43: React.FC = () => {
+const BracketTiempoReal33: React.FC = () => {
   const {
     partidas,
     nivelesJugadores,
@@ -53,4 +53,4 @@ const BracketTiempoReal43: React.FC = () => {
   );
 };
 
-export default BracketTiempoReal43;
+export default BracketTiempoReal33;

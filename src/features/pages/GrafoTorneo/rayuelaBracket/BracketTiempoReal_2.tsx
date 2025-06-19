@@ -6,7 +6,7 @@ import { useFirebaseData } from '../../../../core/hooks/rayuelaGrupos/useFirebas
 import { crearEstructuraConRondasOcultas } from '../../../../core/utils/torneoUtils';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
-const BracketTiempoReal32: React.FC = () => {
+const BracketTiempoReal42: React.FC = () => {
   const {
     partidas,
     nivelesJugadores,
@@ -53,4 +53,4 @@ const BracketTiempoReal32: React.FC = () => {
   );
 };
 
-export default BracketTiempoReal32;
+export default BracketTiempoReal42;

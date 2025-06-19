@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useJuegos } from '../../../core/components/Selectores/selectorJuegos';
-import { useSelectorGrupo, type Grupo } from '../../../core/components/Selectores/selectorGrupo';
+import { useJuegos } from '../../../core/components/selectores/selectorJuegos';
+import { useSelectorGrupo, type Grupo } from '../../../core/components/selectores/selectorGrupo';
 import { agregarJugadorAJuego } from '../../../core/api/Services/agregarJuego';
 import { PasoWizard, FormularioJugadorProps } from '../../../core/models/formulario.ts';
 

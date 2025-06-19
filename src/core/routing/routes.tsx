@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import SearchPage from '../../features/pages/SearchPage/SearchPage';
 
-{/*}
+
 import BracketTiempoReal11 from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_1';
 import BracketTiempoReal12 from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_2';
 import BracketTiempoReal13 from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_3';
@@ -10,14 +10,15 @@ import BracketTiempoReal21 from '../../features/pages/GrafoTorneo/sopladosBracke
 import BracketTiempoReal22 from '../../features/pages/GrafoTorneo/sopladosBracket/BracketTiempoReal_2';
 import BracketTiempoReal23 from '../../features/pages/GrafoTorneo/sopladosBracket/BracketTiempoReal_3';
 
-import BracketTiempoReal31 from '../../features/pages/GrafoTorneo/rayuelaBracket/BracketTiempoReal_1';
-import BracketTiempoReal32 from '../../features/pages/GrafoTorneo/rayuelaBracket/BracketTiempoReal_2';
-import BracketTiempoReal33 from '../../features/pages/GrafoTorneo/rayuelaBracket/BracketTiempoReal_3';
+import BracketTiempoReal31 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_1';
+import BracketTiempoReal32 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_2';
+import BracketTiempoReal33 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_3';
 
-import BracketTiempoReal41 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_1';
-import BracketTiempoReal42 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_2';
-import BracketTiempoReal43 from '../../features/pages/GrafoTorneo/beerpongBracket/BracketTiempoReal_3';
-*/}
+import BracketTiempoReal41 from '../../features/pages/GrafoTorneo/rayuelaBracket/BracketTiempoReal_1';
+import BracketTiempoReal42 from '../../features/pages/GrafoTorneo/rayuelaBracket/BracketTiempoReal_2';
+import BracketTiempoReal43 from '../../features/pages/GrafoTorneo/rayuelaBracket/BracketTiempoReal_3';
+
+
 
 import { TorneoContainer11 } from '../../features/pages/GrafoTorneo/futbolitoBracket/TorneoContainer_1.tsx';
 import { TorneoContainer12 } from '../../features/pages/GrafoTorneo/futbolitoBracket/TorneoContainer_2.tsx';
@@ -66,7 +67,7 @@ export const AppRoutes = () => {
       <Route path="/admin" element={<AdministrarGrupoJuego />} />
       {/*Ruta para visualización de juegos */}
       <Route path="/juegos-completos" element={<LayoutJuegos />} />
-      {/*Ruta para BracketTiempoReal 
+      
       <Route path="/bracket_11" element={<BracketTiempoReal11 />} />
       <Route path="/bracket_12" element={<BracketTiempoReal12 />} />
       <Route path="/bracket_13" element={<BracketTiempoReal13 />} />
@@ -82,7 +83,7 @@ export const AppRoutes = () => {
       <Route path="/bracket_41" element={<BracketTiempoReal41 />} />
       <Route path="/bracket_42" element={<BracketTiempoReal42 />} />
       <Route path="/bracket_43" element={<BracketTiempoReal43 />} />
-      */}
+      
 
       {/* Rutas para el torneo de futbolito */}
 
