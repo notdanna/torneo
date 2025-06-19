@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Search, X, LoaderCircle, AlertTriangle, Trash2, Swords, Layers } from 'lucide-react';
 

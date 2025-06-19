@@ -584,7 +584,6 @@ const renderAnimatedRegularNode = (
   nodeWidth: number,
   nodeHeight: number,
   rondaOriginalIndex: number,
-  scaleFactor: number,
   baseFontSize: number
 ): void => {
   // Línea divisoria

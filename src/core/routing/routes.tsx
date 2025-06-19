@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
 import SearchPage from '../../features/pages/SearchPage/SearchPage';
-
 import BracketTiempoReal11 from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_1';
 import BracketTiempoReal12 from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_2';
 import BracketTiempoReal13 from '../../features/pages/GrafoTorneo/futbolitoBracket/BracketTiempoReal_3';
