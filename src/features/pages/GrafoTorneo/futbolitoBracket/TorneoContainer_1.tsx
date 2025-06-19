@@ -1,7 +1,7 @@
 // components/TorneoContainer.tsx
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
-import { useTorneoCompleto } from '../../../../core/hooks/sopladosGrupos/useTorneoCompleto_1';
+import { useTorneoCompleto } from '../../../../core/hooks/futbolitoGrupos/useTorneoCompleto_1';
 import { renderBracket } from '../../../../core/utils/d3Render';
 
 interface TorneoContainerProps {
