@@ -67,7 +67,7 @@ export const useFirebaseData = (): UseFirebaseDataReturn => {
   useEffect(() => {
     console.log('🔥 Conectando a Firebase - Árbol por Niveles');
     
-    const partidasRef = collection(db, 'torneo', '1', 'juego', '4', 'grupos', '3', 'partidas');
+    const partidasRef = collection(db, 'torneo', '1', 'juego', '3', 'grupos', '3', 'partidas');
     
     const unsubscribe = onSnapshot(
       partidasRef,
