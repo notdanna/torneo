@@ -69,139 +69,118 @@ export const TorneoContainer43: React.FC<TorneoContainerProps> = ({ className = 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px',
+        padding: '20px',
         background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        overflow: 'hidden'
       }}>
-        {/* Título principal */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        {/* Título principal más compacto */}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h1 style={{
-            fontSize: '48px',
+            fontSize: '36px',
             fontWeight: 'bold',
             color: '#92400E',
-            marginBottom: '16px',
+            marginBottom: '8px',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
             🏆 ¡Ganadores del Torneo! 🏆
           </h1>
           <p style={{
-            fontSize: '20px',
+            fontSize: '18px',
             color: '#B45309'
           }}>
             Felicitaciones a nuestros campeones
           </p>
         </div>
         
-        {/* Contenedor de ganadores */}
+        {/* Grid de ganadores */}
         <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '16px',
           width: '100%',
-          maxWidth: '800px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px'
+          maxWidth: '1400px',
+          margin: '0 auto',
+          flex: 1,
+          alignContent: 'center'
         }}>
-          {ganadoresArray.map((ganador, index) => (
+          {ganadoresArray.map((ganador) => (
             <div key={ganador.id} style={{
               background: 'white',
-              borderRadius: '16px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               overflow: 'hidden',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              cursor: 'pointer',
               display: 'flex',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              cursor: 'pointer'
+              flexDirection: 'column',
+              padding: '16px',
+              border: '2px solid #FCD34D'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.15)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.15)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
             }}>
-              {/* Sección de posición */}
+              {/* Icono de trofeo */}
               <div style={{
-                background: index === 0 ? 'linear-gradient(135deg, #FCD34D, #F59E0B)' : 
-                           index === 1 ? 'linear-gradient(135deg, #E5E7EB, #9CA3AF)' :
-                           index === 2 ? 'linear-gradient(135deg, #FDBA74, #F97316)' :
-                           'linear-gradient(135deg, #93C5FD, #3B82F6)',
-                padding: '24px 32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '150px'
+                textAlign: 'center',
+                fontSize: '32px',
+                marginBottom: '8px'
               }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '40px', marginBottom: '8px' }}>
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅'}
-                  </div>
-                  <div style={{
-                    fontSize: '28px',
-                    fontWeight: 'bold',
-                    color: 'white',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
-                  }}>
-                    #{index + 1}
-                  </div>
-                </div>
+                🏆
               </div>
               
               {/* Información del ganador */}
               <div style={{
+                textAlign: 'center',
                 flex: 1,
-                padding: '24px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '16px'
+                gap: '4px'
               }}>
                 {/* Jugador principal */}
-                <div>
-                  <h3 style={{
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    color: '#1F2937',
-                    margin: '0 0 8px 0'
-                  }}>
-                    {ganador.nombre}
-                  </h3>
-                  <p style={{
-                    fontSize: '16px',
-                    color: '#6B7280',
-                    margin: '0 0 8px 0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    🏢 {ganador.empresa}
-                  </p>
-                  <span style={{
-                    display: 'inline-block',
-                    padding: '4px 12px',
-                    borderRadius: '9999px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    backgroundColor: '#DBEAFE',
-                    color: '#1E40AF'
-                  }}>
-                    Nivel {ganador.nivel}
-                  </span>
-                </div>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#1F2937',
+                  margin: '0',
+                  lineHeight: '1.2'
+                }}>
+                  {ganador.nombre}
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  color: '#6B7280',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px'
+                }}>
+                  🏢 {ganador.empresa}
+                </p>
                 
                 {/* Acompañante si existe */}
                 {ganador.nombreAcompanante && (
                   <div style={{
                     borderTop: '1px solid #E5E7EB',
-                    paddingTop: '16px'
+                    paddingTop: '8px',
+                    marginTop: '8px'
                   }}>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px'
+                      justifyContent: 'center',
+                      gap: '4px',
+                      marginBottom: '4px'
                     }}>
-                      <span style={{ fontSize: '18px', color: '#10B981' }}>👥</span>
+                      <span style={{ fontSize: '14px', color: '#10B981' }}>👥</span>
                       <span style={{
-                        fontSize: '14px',
+                        fontSize: '11px',
                         fontWeight: '500',
                         color: '#6B7280'
                       }}>
@@ -209,53 +188,66 @@ export const TorneoContainer43: React.FC<TorneoContainerProps> = ({ className = 
                       </span>
                     </div>
                     <h4 style={{
-                      fontSize: '20px',
+                      fontSize: '14px',
                       fontWeight: '600',
                       color: '#374151',
-                      margin: '0 0 4px 0'
+                      margin: '0',
+                      lineHeight: '1.2'
                     }}>
                       {ganador.nombreAcompanante}
                     </h4>
                     {ganador.empresaAcompanante && (
                       <p style={{
-                        fontSize: '16px',
+                        fontSize: '11px',
                         color: '#6B7280',
                         margin: '0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
+                        marginTop: '2px'
                       }}>
                         🏢 {ganador.empresaAcompanante}
                       </p>
                     )}
                   </div>
                 )}
+                
+                {/* Nivel */}
+                <span style={{
+                  display: 'inline-block',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  backgroundColor: '#DBEAFE',
+                  color: '#1E40AF',
+                  marginTop: '8px'
+                }}>
+                  Nivel {ganador.nivel}
+                </span>
               </div>
             </div>
           ))}
         </div>
         
-        {/* Total de ganadores */}
+        {/* Total de ganadores más pequeño */}
         <div style={{
-          marginTop: '48px',
+          marginTop: '20px',
           backgroundColor: 'white',
           borderRadius: '9999px',
-          padding: '16px 32px',
+          padding: '12px 24px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '12px'
+          gap: '8px'
         }}>
-          <span style={{ fontSize: '24px' }}>🎯</span>
+          <span style={{ fontSize: '20px' }}>🎯</span>
           <p style={{
-            fontSize: '18px',
+            fontSize: '16px',
             fontWeight: '600',
             color: '#374151',
             margin: 0
           }}>
             Total de ganadores: 
             <span style={{
-              fontSize: '28px',
+              fontSize: '20px',
               fontWeight: 'bold',
               color: '#F59E0B',
               marginLeft: '8px'
