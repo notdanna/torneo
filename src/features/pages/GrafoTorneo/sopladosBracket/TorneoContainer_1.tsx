@@ -72,8 +72,39 @@ export const TorneoContainer21: React.FC<TorneoContainerProps> = ({ className = 
         padding: '20px',
         background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative'
       }}>
+        {/* Icono superior izquierdo */}
+        <img 
+          src="/src/assets/link.png" 
+          alt="Link" 
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            width: '80px',
+            height: '80px',
+            objectFit: 'contain',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.2))'
+          }}
+        />
+        
+        {/* Icono superior derecho */}
+        <img 
+          src="/src/assets/olimpeada.png" 
+          alt="Olimpeada" 
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            width: '80px',
+            height: '80px',
+            objectFit: 'contain',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.2))'
+          }}
+        />
+        
         {/* Título principal más compacto */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h1 style={{
